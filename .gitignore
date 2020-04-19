@@ -1,0 +1,11 @@
+*.pyc
+input
+out
+for_system
+*.pth
+*.caffemodel
+_py_cache_
+.idea
+venv
+images/
+*.png

@@ -1,0 +1,7 @@
+Learning_rate  DataSet   Epoch  Network  Training_Function    Accuracy            
+0.00005         CelebA    120   19layers      Adam              8.3%
+0.0001          CelebA    120   19layers      Adam              7.2%
+0.000005        CelebA    360   19layers      Adam             17.8%
+0.00000005      CelebA   1200   19layers      Adam              1.7%
+Dynamic     VGGface2(20k) 120   Resnet34      Adam             30.4%
+Dynamic     VGGface2(3M)    2   Resnet34      Adam             25.6%
