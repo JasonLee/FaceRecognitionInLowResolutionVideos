@@ -13,8 +13,8 @@ class webcamFDM(facialDetectionManager):
         frames_counted (int): the frames has been processed
 
     """
-    def __init__(self,interface,memory):
-        super(webcamFDM,self).__init__(interface,memory)
+    def __init__(self,controller,memory):
+        super(webcamFDM,self).__init__(controller,memory)
 
     def run(self, cam, testForGAN, cv2_to_tensor):
         """ Reads frames from the given camera and processes them.
@@ -28,7 +28,8 @@ class webcamFDM(facialDetectionManager):
         self.frames_counted = 0
         self.chosen_face = 0
         count = 0
-        while(not self.gui.stopRecording):
+
+        while self.controller.is_webcam_activated() is True:
             cv2_image = cam.read()[1]
             print("DET: got image")
             self.setFrame(cv2_image)
@@ -37,7 +38,8 @@ class webcamFDM(facialDetectionManager):
                 self.choose_face()
                 self.processFrame(testForGAN, cv2_to_tensor)
             self.frames_counted += 1
-        self.gui.stopRecording = False
+
+        self.controller.view_stop_webcam()
         cam.release()  # Attempt to Kill the webcam, DOESN@T SEEM TO WORK
 
     def choose_face(self):

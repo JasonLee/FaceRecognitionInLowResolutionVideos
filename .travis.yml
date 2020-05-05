@@ -1,6 +1,12 @@
 language: python
 python:
   - "3.7"
+services:
+  - xvfb
+addons:
+      apt:
+        packages:
+          - libxkbcommon-x11-0
 # command to install dependencies
 install:
   - sudo apt-get update

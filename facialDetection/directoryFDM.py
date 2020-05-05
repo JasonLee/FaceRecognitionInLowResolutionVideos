@@ -13,8 +13,8 @@ class directoryFDM(facialDetectionManager):
         frames_counted (int): the frames has been processed
         indir (str): the input directory.
     """
-    def __init__(self,interface,memory):
-        super(directoryFDM,self).__init__(interface,memory)
+    def __init__(self, controller, memory):
+        super(directoryFDM,self).__init__(controller, memory)
         self.indir = 'input'
         self.isDirectory = True
 

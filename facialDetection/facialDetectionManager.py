@@ -1,5 +1,8 @@
-import os, cv2
+import os, cv2, sys
+sys.path.append("..")
 MINIMUM_BICUBIC_RES = 100
+
+
 def get_resolution(cv2_image):
     """Get height and width of image.
     
@@ -44,14 +47,14 @@ class facialDetectionManager:
     WEIGHTS = "facialDetection/res10_300x300_ssd_iter_140000.caffemodel"
     MINIMUM_CONFIDENCE = 0.2
 
-    def __init__(self,interface,memory):
+    def __init__(self, controller, memory):
         self.frame = None
         self.outdir = 'out'
         self.faces = []
         self.faces_counted = 0
         self.frames_counted = 0
         self.model = cv2.dnn.readNetFromCaffe(facialDetectionManager.ARCHITECTURE, facialDetectionManager.WEIGHTS)
-        self.gui = interface
+        self.controller = controller
         self.memory = memory
         self.isDirectory = False
 
@@ -74,11 +77,10 @@ class facialDetectionManager:
             testForGAN: function that checks if super resolution should be applied to a face.
             cv2_to_tensor: function that converts an OpenCV image into a tensor.
         """
-        super_resolution_enabled = self.gui.getSRGANToggleFlag()
         for f in self.extractFaces():
             # print("DET: doing")
 
-            if super_resolution_enabled and testForGAN(f):
+            if testForGAN(f):
                 if (self.isDirectory and testForBicubic(f)):
                     print("Bicubic")
                     dsize = 2 * MINIMUM_BICUBIC_RES
@@ -124,13 +126,14 @@ class facialDetectionManager:
                     self.faces_counted += 1
         # stores the positions of all faces found in the image - as a collection of (x,y,w,h) data.
         boxedFaces = self.drawBoxAroundFaces()
-        if self.gui.getSaveImageToggleFlag():
+        if True:
             path = os.path.join(self.outdir, 'detected' + str(self.frames_counted) + '.jpg')
         else:
             path = os.path.join(self.outdir, 'CurrentFrame' + '.jpg')
         cv2.imwrite(path, boxedFaces)
-        self.gui.insertDetected(path)
-        self.gui.setDetected(self.frames_counted)
+
+        self.controller.set_image_view(path)
+
 
     def extractFaces(self):
         """ Crops the faces from the frame and returns them in a list.
