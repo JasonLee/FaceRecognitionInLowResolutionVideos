@@ -8,4 +8,4 @@ _py_cache_
 .idea
 venv
 images/
-*.png
+.jpg
