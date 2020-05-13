@@ -9,7 +9,6 @@ from random import randrange
 
 
 class GraphWidget(QWidget):
-    current_time = dt.datetime(2018, 1, 1, 0, 0)
 
     def __init__(self, controller):
         super(GraphWidget, self).__init__()
@@ -45,6 +44,10 @@ class GraphWidget(QWidget):
         verts = []
         colors = []
 
+        if not self.__raw_data:
+            self.canvas.draw()
+            return
+
         for d in self.__raw_data:
             v = [(mdates.date2num(d[0]), self.__y_labels[d[2]] - 0.4),  # 0.4 is width /2 so width of each bar is 0.8
                  (mdates.date2num(d[0]), self.__y_labels[d[2]] + 0.4),
@@ -58,7 +61,8 @@ class GraphWidget(QWidget):
         self.__ax = self.__figure.add_subplot(111)
         self.__ax.add_collection(bars)
         self.__ax.autoscale()
-        loc = mdates.MinuteLocator()
+
+        loc = mdates.AutoDateLocator()
 
         self.__ax.xaxis.set_major_locator(loc)
         self.__ax.xaxis.set_major_formatter(mdates.AutoDateFormatter(loc))
@@ -68,8 +72,11 @@ class GraphWidget(QWidget):
 
         self.canvas.draw()
 
-    def append_to_data(self, face_label):
-        formatted_data = (GraphWidget.current_time, GraphWidget.current_time + dt.timedelta(minutes=1), face_label)
+    def append_to_data(self, face_label, time):
+        base_time = dt.datetime(2020, 1, 1, 0, 0)
+
+        offset_time = base_time + dt.timedelta(milliseconds=time)
+        formatted_data = (offset_time, offset_time + dt.timedelta(seconds=1), face_label)
 
         if face_label not in self.__y_labels:
             self.__y_labels[face_label] = len(self.__y_labels.keys()) + 1
@@ -91,6 +98,7 @@ class GraphWidget(QWidget):
 
         self.__processed_bars = []
         self.__processed_colour_mapping = []
+        self.plot()
 
 
 

@@ -9,3 +9,4 @@ _py_cache_
 venv
 images/
 .jpg
+.vscode

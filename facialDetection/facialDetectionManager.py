@@ -1,4 +1,6 @@
+import copy
 import os, cv2, sys
+from database.FaceData import FaceData
 sys.path.append("..")
 MINIMUM_BICUBIC_RES = 100
 
@@ -56,7 +58,7 @@ class facialDetectionManager:
         self.model = cv2.dnn.readNetFromCaffe(facialDetectionManager.ARCHITECTURE, facialDetectionManager.WEIGHTS)
         self.controller = controller
         self.memory = memory
-        self.isDirectory = False
+        self.frame_counter = 0
 
     def setFrame(self, frame):
         """ Sets the current frame.
@@ -66,9 +68,6 @@ class facialDetectionManager:
         """
         self.frame = frame
 
-    def shouldProcessFrame(self):
-        return self.frames_counted % 5 == 0
-
     def processFrame(self, testForGAN, cv2_to_tensor):
         """ Processes a frame by drawing boxes around faces, storing detected faces in the output directory and
         incrementing the number of frames counted.
@@ -77,29 +76,22 @@ class facialDetectionManager:
             testForGAN: function that checks if super resolution should be applied to a face.
             cv2_to_tensor: function that converts an OpenCV image into a tensor.
         """
-        for f in self.extractFaces():
+        for cropped_face_data in self.extractFaces():
             # print("DET: doing")
 
-            if testForGAN(f):
-                if (self.isDirectory and testForBicubic(f)):
-                    print("Bicubic")
-                    dsize = 2 * MINIMUM_BICUBIC_RES
-                    f = cv2.resize(f, (dsize, dsize), interpolation = cv2.INTER_CUBIC)
-                try:
-                    tensor = cv2_to_tensor(f)
-                except:
-                    return
-                self.memory.ganQueue.push(tensor.unsqueeze(0))
+            face_data = cropped_face_data.get_data()
+            tensor = cv2_to_tensor(face_data)
+
+            if testForGAN(face_data):
+                cropped_face_data.set_data(tensor.unsqueeze(0))
+                self.memory.ganQueue.push(cropped_face_data)
                 self.memory.ganQueueCount.release()
             else:
-                try:
-                    tensor = cv2_to_tensor(f)
-                except:
-                    return
-                self.memory.recogQueue.push(tensor.unsqueeze(0))
+                cropped_face_data.set_data(tensor.unsqueeze(0))
+                self.memory.recogQueue.push(cropped_face_data)
                 self.memory.recogQueueCount.release()
 
-    def locateFaces(self):
+    def locateFaces(self, time_of_frame):
         """ Locates the faces in the frame and updates the number of faces counted"""
 
         # NOTE: The network was trained on RGB images, so do not apply it to grayscale images
@@ -122,7 +114,9 @@ class facialDetectionManager:
                     startY = int( max(0, startY * frame_height) )
                     endX = int( min(frame_width, endX * frame_width) )
                     endY = int( min(frame_height, endY * frame_height) )
-                    self.faces.append( (startX,startY,endX,endY) )
+
+                    face_data = FaceData((startX, startY, endX, endY), time_of_frame)
+                    self.faces.append(face_data)
                     self.faces_counted += 1
         # stores the positions of all faces found in the image - as a collection of (x,y,w,h) data.
         boxedFaces = self.drawBoxAroundFaces()
@@ -132,7 +126,10 @@ class facialDetectionManager:
             path = os.path.join(self.outdir, 'CurrentFrame' + '.jpg')
         cv2.imwrite(path, boxedFaces)
 
+        self.frame_counter += 1
         self.controller.set_image_view(path)
+
+        return boxedFaces
 
 
     def extractFaces(self):
@@ -142,8 +139,11 @@ class facialDetectionManager:
             images of faces that have been cropped so that the majority of the background is cropped out.
         """
         cropped_faces = []
-        for (startX, startY, endX, endY) in self.faces:
-            cropped_faces.append( self.frame[startY : endY, startX : endX] )
+        for face_data in self.faces:
+            (startX, startY, endX, endY) = face_data.get_data()
+
+            cropped_face_data = FaceData(self.frame[startY: endY, startX: endX], face_data.get_time())
+            cropped_faces.append(cropped_face_data)
         return cropped_faces
 
     def drawBoxAroundFaces(self):
@@ -152,8 +152,9 @@ class facialDetectionManager:
         Returns:
             The updated frame.
         """
-        for (startX, startY, endX, endY) in self.faces:
-            cv2.rectangle(self.frame, (startX, startY), (endX, endY), (255, 0, 0), 2)
+        for face_data in self.faces:
+            (startX, startY, endX, endY) = face_data.get_data()
+            cv2.rectangle(self.frame, (startX, startY), (endX, endY), (0, 0, 255), 1, cv2.LINE_AA)
         return self.frame
 
 def set_detection_confidence(confidence):
