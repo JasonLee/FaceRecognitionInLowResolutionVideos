@@ -27,20 +27,26 @@ class webcamFDM(facialDetectionManager):
         self.faces_counted = 0
         self.frames_counted = 0
         self.chosen_face = 0
-        count = 0
+        frame_rate = cam.get(cv2.CAP_PROP_FPS)
+        print("frame_rate - ", frame_rate)
+        # around 3 fps
+        seconds_per_frame = 1/3
+
+        frame_sample = int(float(frame_rate) * seconds_per_frame)
 
         while self.controller.is_webcam_activated() is True:
             cv2_image = cam.read()[1]
-            print("DET: got image")
-            self.setFrame(cv2_image)
-            self.locateFaces()
-            if self.shouldProcessFrame():
+            if self.frames_counted % frame_sample == 0:
+                time_of_frame = cam.get(cv2.CAP_PROP_POS_MSEC)
+                self.setFrame(cv2_image)
+                self.locateFaces(time_of_frame)
                 self.choose_face()
                 self.processFrame(testForGAN, cv2_to_tensor)
             self.frames_counted += 1
 
         self.controller.view_stop_webcam()
         cam.release()  # Attempt to Kill the webcam, DOESN@T SEEM TO WORK
+        cv2.destroyAllWindows()
 
     def choose_face(self):
         """temporary fix to achieve real time recognition: reduces a face list of length=n from a frame to a list of length=1"""

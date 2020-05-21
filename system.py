@@ -5,9 +5,12 @@
         INPATH: path to save the detected input images.
         BENCHMARCH_TIME: enable time cost tracking function.
 """
+import copy
+
 import torchvision
 import sys, os
 import threading
+from database.FaceData import FaceData
 
 from threads.SharedData import SharedData
 from facialDetection.webcamFDM import webcamFDM
@@ -31,11 +34,9 @@ srganModel = None
 recogModel = None
 
 
-
-
-def set_controller(controlObj):
+def set_controller(control_bbj):
     global controller
-    controller = controlObj
+    controller = control_bbj
 
     init_models()
 
@@ -99,6 +100,16 @@ def detectionManagerDirectory(controller):
     print("DET: done")
     return
 
+def empty_all_queues():
+    """ For some reason legacy code used custom queue"""
+    gan_queue = memory.ganQueue
+    rec_queue = memory.recogQueue
+    while gan_queue.head is not None:
+        gan_queue.pop()
+
+    while rec_queue.head is not None:
+        rec_queue.pop()
+
 
 def add_corrected_face(name, face):
     recogModel.add_face(name, face)
@@ -147,15 +158,16 @@ def ganManager(srganModel):
     i = 0
     while (1):
         memory.ganQueueCount.acquire()
-        if (memory.detDone.is_set() and memory.ganQueue.empty()):
+        if memory.detDone.is_set() and memory.ganQueue.empty():
             print("\tGAN: done")
             memory.ganDone.set()
             memory.recogQueueCount.release()
             return
-        tensorToProcess = memory.ganQueue.pop()
+
+        face_data_to_process = memory.ganQueue.pop()
 
         print("\tGAN: doing")
-        if (tensorToProcess is None):
+        if face_data_to_process is None:
             print("\tGAN: error 0")
             return
 
@@ -164,10 +176,10 @@ def ganManager(srganModel):
             try:
                 if BENCHMARK_TIME:
                     start = time.time()
+                image_data = face_data_to_process.get_data()
+                torchvision.utils.save_image(image_data.clone(), "./out/" + "beforeSuperResolution" + str(i) + ".png")
 
-                torchvision.utils.save_image(tensorToProcess.clone(), "./out/" + "beforeSuperResolution" + str(i) + ".png")
-
-                tensor = srganModel.super_resolution(tensorToProcess)
+                tensor = srganModel.super_resolution(image_data)
   
                 if BENCHMARK_TIME:
                     elapsed = (time.time() - start)
@@ -191,7 +203,9 @@ def ganManager(srganModel):
         torchvision.utils.save_image(normalised.clone(), "./out/" + "AfterSuperResolution" + str(i) + ".png")
 
         i += 1
-        memory.recogQueue.push(normalised)
+        face_data_to_process.set_data(normalised)
+        print("HERE GAN v2", face_data_to_process)
+        memory.recogQueue.push(face_data_to_process)
         memory.recogQueueCount.release()
 
 
@@ -209,16 +223,18 @@ def recogManager(recogModel, controller):
            #TODO: Button disabling
             return
             print("\t\tREC: done")
-        tensor = memory.recogQueue.pop()
+
+        face_data_to_process = memory.recogQueue.pop()
+
         print("\t\tREC: doing")
-        if (tensor is None):
+        if (face_data_to_process is None):
             print("\t\tREC: queue empty")
         else:
-
             try:
                 if BENCHMARK_TIME:
                     start = time.time()
-                confidence, label = recogModel.recognize(tensor)
+                    image_data = face_data_to_process.get_data()
+                confidence, label = recogModel.recognize(image_data)
                 if BENCHMARK_TIME:
                     elapsed = (time.time() - start)
                     print('\tFace Recognition: ' + str(elapsed) + 's')
@@ -239,11 +255,11 @@ def recogManager(recogModel, controller):
             
             face = Face(str(i) + ".png", label, confidence)
 
-            torchvision.utils.save_image(tensor, "./out/" + str(i) + ".png")
+            torchvision.utils.save_image(image_data, "./out/" + str(i) + ".png")
 
             threshold = random.randint(0, 100)
 
             # PYSIGNALS
-            controller.get_view().get_right_widget().add_list_requested.emit(label, confidence.__str__(), "./out/" + str(i) + ".png")
-            controller.add_data_graph(label)
+            controller.get_view().get_list_widget().add_list_requested.emit(label, confidence.__str__(), "./out/" + str(i) + ".png")
+            controller.add_data_graph(label, face_data_to_process.get_time())
             i += 1

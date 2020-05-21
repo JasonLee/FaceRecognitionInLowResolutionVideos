@@ -1,14 +1,13 @@
 import sys
 import unittest
 
-from PyQt5.QtWidgets import QApplication, QWidget
-from PyQt5.QtTest import QTest
-from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication
 import GUI.MainWindow
-app = QApplication(sys.argv)
+
 
 # Runs from root directory
 TEST_IMAGE_PATH = "test/test_data/test_image.png"
+app = QApplication(sys.argv)
 
 
 class MainWindowTest(unittest.TestCase):
@@ -16,6 +15,7 @@ class MainWindowTest(unittest.TestCase):
 
     def setUp(self):
         """Create GUI without the controller"""
+
         self.gui = GUI.MainWindow.MainWindow(None)
 
     def test_default_toolbar(self):
@@ -27,12 +27,12 @@ class MainWindowTest(unittest.TestCase):
         self.assertEqual(self.gui.cross_button.isEnabled(), False)
 
     def test_adding_to_live_list(self):
-        self.gui.get_right_widget().add_live_tab("Name", "Confidence", TEST_IMAGE_PATH)
-        count = self.gui.get_right_widget().get_live_list_widget().count()
+        self.gui.get_list_widget().add_live_tab("Name", "Confidence", TEST_IMAGE_PATH)
+        count = self.gui.get_list_widget().get_live_list_widget().count()
         self.assertEqual(count, 1)
 
-        item = self.gui.get_right_widget().get_live_list_widget().item(0)
-        live_result_block_data = self.gui.get_right_widget().get_live_list_widget().itemWidget(item)
+        item = self.gui.get_list_widget().get_live_list_widget().item(0)
+        live_result_block_data = self.gui.get_list_widget().get_live_list_widget().itemWidget(item)
 
         self.assertEqual(live_result_block_data.name, "Name")
         self.assertEqual(live_result_block_data.confidence, "Confidence")

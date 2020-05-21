@@ -1,11 +1,6 @@
-import sys
 import unittest
 
-from PyQt5.QtWidgets import QApplication, QWidget
-from PyQt5.QtTest import QTest
-from PyQt5.QtCore import Qt
 import GUI.MainWindow
-app = QApplication(sys.argv)
 
 # Runs from root directory
 TEST_IMAGE_PATH = "test/test_data/test_image.png"
@@ -21,9 +16,9 @@ class GraphWidgetTest(unittest.TestCase):
 
     def test_adding_people(self):
         """Check toolbar buttons are enabled/disabled correctly"""
-        self.graph.append_to_data("John")
-        self.graph.append_to_data("Jane")
-        self.graph.append_to_data("Joe")
+        self.graph.append_to_data("John", 0)
+        self.graph.append_to_data("Jane", 0)
+        self.graph.append_to_data("Joe", 0)
         self.graph.plot()
 
         # Pulls y axis labels and makes sure they match added data
@@ -34,9 +29,9 @@ class GraphWidgetTest(unittest.TestCase):
 
     def test_add_duplicate_no_repeat_in_graph(self):
         """Duplicates should not be added to y axis labels"""
-        self.graph.append_to_data("John")
-        self.graph.append_to_data("John")
-        self.graph.append_to_data("Jane")
+        self.graph.append_to_data("John", 0)
+        self.graph.append_to_data("John", 0)
+        self.graph.append_to_data("Jane", 0)
 
         self.graph.plot()
 
@@ -47,15 +42,15 @@ class GraphWidgetTest(unittest.TestCase):
 
     def test_rest_graph(self):
         """Duplicates should not be added to y axis labels"""
-        self.graph.append_to_data("John")
-        self.graph.append_to_data("John")
-        self.graph.append_to_data("Jane")
+        self.graph.append_to_data("John", 0)
+        self.graph.append_to_data("John", 0)
+        self.graph.append_to_data("Jane", 0)
         self.graph.plot()
 
         self.graph.reset_figure()
 
-        self.graph.append_to_data("Reset")
-        self.graph.append_to_data("Graph")
+        self.graph.append_to_data("Reset", 0)
+        self.graph.append_to_data("Graph", 0)
         self.graph.plot()
 
         # Pulls y axis labels and makes sure they match added data
@@ -63,7 +58,6 @@ class GraphWidgetTest(unittest.TestCase):
 
         self.assertEqual(y_labels[0].get_text(), "Reset")
         self.assertEqual(y_labels[1].get_text(), "Graph")
-
 
 if __name__ == '__main__':
     unittest.main()
