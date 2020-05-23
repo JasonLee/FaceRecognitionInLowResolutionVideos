@@ -47,6 +47,7 @@ class facialDetectionManager:
     """
     ARCHITECTURE = "facialDetection/deploy.prototxt.txt"
     WEIGHTS = "facialDetection/res10_300x300_ssd_iter_140000.caffemodel"
+
     MINIMUM_CONFIDENCE = 0.2
 
     def __init__(self, controller, memory):
@@ -59,6 +60,8 @@ class facialDetectionManager:
         self.controller = controller
         self.memory = memory
         self.frame_counter = 0
+        self.set_detection_confidence()
+        print("Confidence is ", facialDetectionManager.MINIMUM_CONFIDENCE)
 
     def setFrame(self, frame):
         """ Sets the current frame.
@@ -82,7 +85,7 @@ class facialDetectionManager:
             face_data = cropped_face_data.get_data()
             tensor = cv2_to_tensor(face_data)
 
-            if testForGAN(face_data):
+            if testForGAN(face_data) and self.controller.get_settings().value("Toggle SR", 1, int) == 1:
                 cropped_face_data.set_data(tensor.unsqueeze(0))
                 self.memory.ganQueue.push(cropped_face_data)
                 self.memory.ganQueueCount.release()
@@ -157,13 +160,14 @@ class facialDetectionManager:
             cv2.rectangle(self.frame, (startX, startY), (endX, endY), (0, 0, 255), 1, cv2.LINE_AA)
         return self.frame
 
-def set_detection_confidence(confidence):
-    """Sets the minimum confidence that is used by face detection.
+    def set_detection_confidence(self):
+        """Sets the minimum confidence that is used by face detection.
 
-    Args:
-        confidence (string): value can be 0.2/0.4/0.6/0.8, faces detected with a confidence equal to or above this
-                             value will be processed by the system.
-    """
-    value = float(confidence)
-    facialDetectionManager.MINIMUM_CONFIDENCE = value
-    # print("Minimum confidence set to " + confidence)
+        Args:
+            confidence (string): value can be 0.2/0.4/0.6/0.8, faces detected with a confidence equal to or above this
+                                 value will be processed by the system.
+        """
+
+        facialDetectionManager.MINIMUM_CONFIDENCE = self.controller.get_settings().value("Face Detection Confidence", 0, float)
+
+        # print("Minimum confidence set to " + confidence)

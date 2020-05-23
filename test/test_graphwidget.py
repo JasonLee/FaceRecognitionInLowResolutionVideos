@@ -1,5 +1,5 @@
 import unittest
-
+from test.DummyController import DummyController
 import GUI.MainWindow
 
 # Runs from root directory
@@ -11,7 +11,8 @@ class GraphWidgetTest(unittest.TestCase):
 
     def setUp(self):
         """Create GUI without the controller"""
-        self.gui = GUI.MainWindow.MainWindow(None)
+        self.controller = DummyController()
+        self.gui = GUI.MainWindow.MainWindow(self.controller)
         self.graph = self.gui.get_graph_widget()
 
     def test_adding_people(self):

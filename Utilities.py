@@ -4,13 +4,10 @@ Attributes:
     MINIMUM_BICUBIC_RES (int): minimum image resolution that doesn't need to be processed by bicubic operation.
     MINIMUM_GAN_RES (int): minimum image resolution that doesn't need to be processed by super resolution.
 """
-import torch
 import cv2
 from PIL import Image
 from torch.autograd import Variable
 from torchvision.transforms import ToTensor
-
-from userInteface.settings_page import *
 
 MINIMUM_BICUBIC_RES = 50
 MINIMUM_GAN_RES = 100

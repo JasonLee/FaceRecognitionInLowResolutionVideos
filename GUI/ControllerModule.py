@@ -1,5 +1,6 @@
 import sys
 
+from PyQt5.QtCore import QSettings
 from PyQt5.QtWidgets import QApplication
 
 from GUI.MainWindow import MainWindow
@@ -10,6 +11,7 @@ class Controller:
     def __init__(self):
 
         app = QApplication(sys.argv)
+        self._settings = QSettings('settings.ini', QSettings.IniFormat)
         self.__view = MainWindow(self)
         set_controller(self)
 
@@ -64,6 +66,9 @@ class Controller:
 
     def get_video_processing_flag(self):
         return self.__view.is_processing_video
+
+    def get_settings(self):
+        return self._settings
 
 
 

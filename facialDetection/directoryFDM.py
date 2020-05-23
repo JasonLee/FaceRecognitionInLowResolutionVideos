@@ -39,15 +39,13 @@ class directoryFDM(facialDetectionManager):
 
         elif file.endswith('.mp4'):
             self.controller.set_video_processing_flag(True)
-            cv2_video = cv2.VideoCapture(self.indir + '/' + file)
-            height = int(cv2_video.get(cv2.CAP_PROP_FRAME_HEIGHT))
-            width = int(cv2_video.get(cv2.CAP_PROP_FRAME_WIDTH))
-            fps_new_video = 1
-            frame_rate = cv2_video.get(cv2.CAP_PROP_FPS)
-            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
 
-            video_writer = cv2.VideoWriter(self.outdir + '/' + "processed.mp4", fourcc, fps_new_video, (width, height))
-            seconds_per_frame = 1
+            cv2_video = cv2.VideoCapture(self.indir + '/' + file)
+
+            video_writer = self.set_up_video_writer(cv2_video)
+
+            frame_rate = cv2_video.get(cv2.CAP_PROP_FPS)
+            seconds_per_frame = self.controller.get_settings().value("Video Capture FPS", 0, int)
 
             frame_sample = int(frame_rate) * seconds_per_frame
 
@@ -75,4 +73,10 @@ class directoryFDM(facialDetectionManager):
         else:
             print("DET: Error, unrecognised input file")
 
+    def set_up_video_writer(self, cv2_video_obj):
+        height = int(cv2_video_obj.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        width = int(cv2_video_obj.get(cv2.CAP_PROP_FRAME_WIDTH))
+        fps_new_video = 1
 
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        return cv2.VideoWriter(self.outdir + '/' + "processed.mp4", fourcc, fps_new_video, (width, height))

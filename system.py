@@ -26,13 +26,13 @@ BENCHMARK_TIME = True
 
 os.makedirs(OUTPATH, exist_ok=True)
 os.makedirs(INPATH, exist_ok=True)
-memory = SharedData()
+
 controller = None
 
 hardware = None
 srganModel = None
 recogModel = None
-
+memory = None
 
 def set_controller(control_bbj):
     global controller
@@ -41,9 +41,17 @@ def set_controller(control_bbj):
     init_models()
 
 def init_models():
-    global hardware, srganModel, recogModel
+    global hardware, srganModel, recogModel, memory
 
-    hardware = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    memory = SharedData(controller)
+
+    if controller.get_settings().value("Hardware", 0, int) == 0 and torch.cuda.is_available():
+        hardware = torch.device("cuda:0")
+        print("Hardware is GPU")
+    else:
+        hardware = torch.device("cpu")
+        print("Hardware is CPU")
+
     srganModel = superResolutionModel(hardware)
     recogModel = recognitionModel("./images", hardware)
 
@@ -59,8 +67,11 @@ def start(inputMode):
     threads = []
     detect = chooseDetectionMode(inputMode)
     threads.append(detect)
-    gan = threading.Thread(target = ganManager, args = [srganModel])
-    threads.append(gan)
+
+    if controller.get_settings().value("Toggle SR", 1, int) == 1:
+        gan = threading.Thread(target = ganManager, args = [srganModel])
+        threads.append(gan)
+
     recog = threading.Thread(target = recogManager, args = [recogModel, controller])
     threads.append(recog)
     for thread in threads:
@@ -95,14 +106,19 @@ def detectionManagerDirectory(controller):
         elapsed = (time.time() - start)
         print('FACE DETECTION: ' + str(elapsed) + 's')
     memory.detDone.set()
-    memory.ganQueueCount.release()
+
+    if controller.get_settings().value("Toggle SR", 1, int) == 1:
+        memory.ganQueueCount.release()
+
     memory.recogQueueCount.release()
     print("DET: done")
     return
 
 def empty_all_queues():
     """ For some reason legacy code used custom queue"""
-    gan_queue = memory.ganQueue
+    if controller.get_settings().value("Toggle SR", 1, int) == 1:
+        gan_queue = memory.ganQueue
+
     rec_queue = memory.recogQueue
     while gan_queue.head is not None:
         gan_queue.pop()
@@ -137,7 +153,10 @@ def detectionManagerWebcam(controller):
         raise
 
     memory.detDone.set()
-    memory.ganQueueCount.release()
+
+    if controller.get_settings().value("Toggle SR", 1, int) == 1:
+        memory.ganQueueCount.release()
+
     memory.recogQueueCount.release()
     print("DET: done")
     return
@@ -177,7 +196,9 @@ def ganManager(srganModel):
                 if BENCHMARK_TIME:
                     start = time.time()
                 image_data = face_data_to_process.get_data()
-                torchvision.utils.save_image(image_data.clone(), "./out/" + "beforeSuperResolution" + str(i) + ".png")
+
+                if controller.get_settings().value("Save Image Toggle", 0, int) == 1:
+                    torchvision.utils.save_image(image_data.clone(), "./out/" + "beforeSuperResolution" + str(i) + ".png")
 
                 tensor = srganModel.super_resolution(image_data)
   
@@ -200,7 +221,8 @@ def ganManager(srganModel):
         else:
             normalised = torch.zeros(tensor.size())
 
-        torchvision.utils.save_image(normalised.clone(), "./out/" + "AfterSuperResolution" + str(i) + ".png")
+        if controller.get_settings().value("Save Image Toggle", 0, int) == 1:
+            torchvision.utils.save_image(normalised.clone(), "./out/" + "AfterSuperResolution" + str(i) + ".png")
 
         i += 1
         face_data_to_process.set_data(normalised)
@@ -219,15 +241,16 @@ def recogManager(recogModel, controller):
     i = 0
     while (1):
         memory.recogQueueCount.acquire()
-        if (memory.detDone.is_set() and memory.ganDone.is_set() and memory.recogQueue.empty()):
-           #TODO: Button disabling
-            return
+        if memory.detDone.is_set() and memory.recogQueue.empty():
+            if controller.get_settings().value("Toggle SR", 1, int) == 1 and not memory.ganDone.is_set():
+                pass
             print("\t\tREC: done")
+            return
 
         face_data_to_process = memory.recogQueue.pop()
 
         print("\t\tREC: doing")
-        if (face_data_to_process is None):
+        if face_data_to_process is None:
             print("\t\tREC: queue empty")
         else:
             try:
@@ -245,19 +268,15 @@ def recogManager(recogModel, controller):
             # TODO: WRITE TO ERROR LOG
                 raise
 
-            if(confidence <= 50):
-                if confidence >= 20:
-                    label = "Unknown ("+label+" ?)"
+            if confidence <= controller.get_settings().value("Face Recognition Minimum Confidence", 70, int):
+                if confidence >= 50:
+                    label = "Unknown (" + label + " ?)"
                 else:
                     label = "Unknown"
-                confidence = 100 - confidence
-            confidence = (confidence - 50)*2
-            
-            face = Face(str(i) + ".png", label, confidence)
 
+            # TODO: Get rid of dependency of saving images
+            # if controller.get_settings().value("Save Image Toggle", 0, int) == 1:
             torchvision.utils.save_image(image_data, "./out/" + str(i) + ".png")
-
-            threshold = random.randint(0, 100)
 
             # PYSIGNALS
             controller.get_view().get_list_widget().add_list_requested.emit(label, confidence.__str__(), "./out/" + str(i) + ".png")
