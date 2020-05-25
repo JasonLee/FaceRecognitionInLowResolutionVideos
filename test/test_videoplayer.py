@@ -1,6 +1,7 @@
 import unittest
 
 import GUI.MainWindow
+from test.DummyController import DummyController
 
 # Runs from root directory
 TEST_IMAGE_PATH = "test/test_data/test_image.png"
@@ -11,7 +12,8 @@ class VideoPlayerTest(unittest.TestCase):
 
     def setUp(self):
         """Create GUI without the controller"""
-        self.gui = GUI.MainWindow.MainWindow(None)
+        self.controller = DummyController()
+        self.gui = GUI.MainWindow.MainWindow(self.controller)
         self.video_player = self.gui.get_video_player()
 
     def test_default_toolbar(self):

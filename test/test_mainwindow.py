@@ -3,6 +3,7 @@ import unittest
 
 from PyQt5.QtWidgets import QApplication
 import GUI.MainWindow
+from test.DummyController import DummyController
 
 
 # Runs from root directory
@@ -15,8 +16,8 @@ class MainWindowTest(unittest.TestCase):
 
     def setUp(self):
         """Create GUI without the controller"""
-
-        self.gui = GUI.MainWindow.MainWindow(None)
+        self.controller = DummyController()
+        self.gui = GUI.MainWindow.MainWindow(self.controller)
 
     def test_default_toolbar(self):
         """Check toolbar buttons are enabled/disabled correctly"""

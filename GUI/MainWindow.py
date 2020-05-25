@@ -6,11 +6,12 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
                              QLabel, QMainWindow, QMenuBar,
-                             QSplitter, QWidget, QStackedWidget)
+                             QSplitter, QWidget, QStackedWidget, QMessageBox)
 
 from GUI.GraphWidget import GraphWidget
 from GUI.ListWidget import ListWidget
 from GUI.VideoPlayer import VideoPlayer
+from GUI.Settings import SettingsDialog
 
 INPATH = 'input'
 OUTPATH = 'out'
@@ -35,6 +36,8 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.main_widget)
 
         self.__list_widget = ListWidget(controller)
+        self.__settings_page = SettingsDialog(self.controller.get_settings())
+        self.__settings_page.hide()
 
         self.__setup_menu_bar()
         self.__setup_toolbar()
@@ -52,6 +55,7 @@ class MainWindow(QMainWindow):
             return new_action
 
         self.file_menu = self.menu_bar.addMenu('File')
+        self.menu_bar.addAction(action_mapper('Settings', self.__open_settings))
         self.menu_bar.addAction(action_mapper('Exit', self.close))
 
         self.file_menu.addAction(action_mapper('print', self.print_test))
@@ -141,6 +145,15 @@ class MainWindow(QMainWindow):
         self.test_action.triggered.connect(self.get_graph_widget().plot)
         # self.menu_bar.addAction(self.test_action)
 
+    def __open_settings(self):
+        self.__settings_page.open()
+        result = self.__settings_page.exec()
+
+        # Might not be needed
+        if result:
+            reset_prompt = QMessageBox(QMessageBox.Information, "Settings", "Restart application to apply changes")
+            reset_prompt.exec()
+
     def __import_image_func(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Open File (*.jpg) (*.png)", "C:", "Images(*.jpg *.png)")
 
@@ -226,6 +239,9 @@ class MainWindow(QMainWindow):
     def get_video_player(self):
         return self.__video_player
 
+    def get_settings_page(self):
+        return self.__settings_page
+
     def reset_folders_lists(self):
         self.__video_player.release_video()
         for f in os.listdir(INPATH):
@@ -245,6 +261,8 @@ class MainWindow(QMainWindow):
     def get_status(self):
         # 0 is Image view / 1 is Video View
         return self.image_video_view.currentIndex()
+
+
 
 
 if __name__ == "__main__":
