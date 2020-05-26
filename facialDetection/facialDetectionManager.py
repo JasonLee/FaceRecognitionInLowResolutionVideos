@@ -61,7 +61,6 @@ class facialDetectionManager:
         self.memory = memory
         self.frame_counter = 0
         self.set_detection_confidence()
-        print("Confidence is ", facialDetectionManager.MINIMUM_CONFIDENCE)
 
     def setFrame(self, frame):
         """ Sets the current frame.
@@ -80,7 +79,6 @@ class facialDetectionManager:
             cv2_to_tensor: function that converts an OpenCV image into a tensor.
         """
         for cropped_face_data in self.extractFaces():
-            # print("DET: doing")
 
             face_data = cropped_face_data.get_data()
             tensor = cv2_to_tensor(face_data)
@@ -169,5 +167,3 @@ class facialDetectionManager:
         """
 
         facialDetectionManager.MINIMUM_CONFIDENCE = self.controller.get_settings().value("Face Detection Confidence", 0, float)
-
-        # print("Minimum confidence set to " + confidence)

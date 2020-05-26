@@ -26,18 +26,21 @@ class directoryFDM(facialDetectionManager):
                 cv2_to_tensor: function that converts an OpenCV image into a tensor.
         """
         self.faces_counted = 0
-        print("DET: using directory")
+        self.controller.get_logger_system().info("DET: using directory")
         # Files the newest file in the dir /input
         # TODO GET RID OF USING INPUT
         file = os.listdir(self.indir)[0]
-        print("DET: found " + file)
+        self.controller.get_logger_system().info("DET: found " + file)
         if file.endswith('.png') or file.endswith('.jpg'):
+            self.controller.get_logger_system().info("Processing single image")
             cv2_image = cv2.imread(self.indir + "/" + file)
             self.setFrame(cv2_image)
             self.locateFaces(0)
             self.processFrame(testForGAN, cv2_to_tensor)
+            self.controller.get_logger_system().info("Processing single image - Done")
 
         elif file.endswith('.mp4'):
+            self.controller.get_logger_system().info("Processing video")
             self.controller.set_video_processing_flag(True)
 
             cv2_video = cv2.VideoCapture(self.indir + '/' + file)
@@ -69,9 +72,9 @@ class directoryFDM(facialDetectionManager):
             self.frame_counter = 0
             self.controller.set_video_processing_flag(False)
 
-
         else:
-            print("DET: Error, unrecognised input file")
+            self.controller.get_logger_system().info("DET: Error, unrecognised input file")
+        self.controller.get_logger_system().info("Processing video - Done")
 
     def set_up_video_writer(self, cv2_video_obj):
         height = int(cv2_video_obj.get(cv2.CAP_PROP_FRAME_HEIGHT))

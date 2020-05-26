@@ -28,7 +28,7 @@ class webcamFDM(facialDetectionManager):
         self.frames_counted = 0
         self.chosen_face = 0
         frame_rate = cam.get(cv2.CAP_PROP_FPS)
-        print("frame_rate - ", frame_rate)
+        self.controller.get_logger_system().info("frame_rate - ", frame_rate)
         # around 3 fps
         seconds_per_frame = 1/3
 

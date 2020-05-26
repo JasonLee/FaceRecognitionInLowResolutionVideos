@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 import sys
@@ -16,6 +17,7 @@ from GUI.Settings import SettingsDialog
 INPATH = 'input'
 OUTPATH = 'out'
 SELFPATH = '../userInteface'
+LOG_PATH = 'logging'
 
 IMAGE_VIEW = 0
 VIDEO_VIEW = 1
@@ -36,7 +38,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.main_widget)
 
         self.__list_widget = ListWidget(controller)
-        self.__settings_page = SettingsDialog(self.controller.get_settings())
+        self.__settings_page = SettingsDialog(self.controller.get_settings(), controller)
         self.__settings_page.hide()
 
         self.__setup_menu_bar()
@@ -64,6 +66,7 @@ class MainWindow(QMainWindow):
         self.file_menu.addAction(action_mapper('Use Webcam Feed', self.__use_webcam_func))
 
         self.setMenuBar(self.menu_bar)
+        self.controller.get_logger_gui().info("Setup Menu Bar")
 
     def __setup_toolbar(self):
         self.toolbar = self.addToolBar("Main")
@@ -98,6 +101,7 @@ class MainWindow(QMainWindow):
         self.toolbar.addSeparator()
         self.toolbar.addAction(self.tick_button)
         self.toolbar.addAction(self.cross_button)
+        self.controller.get_logger_gui().info("Setup Tool Bar")
 
     def __setup_layout(self):
         layout = QHBoxLayout()
@@ -114,12 +118,14 @@ class MainWindow(QMainWindow):
         self.video_display_widget.addWidget(self.__video_player)
         self.video_display_widget.addWidget(self.video_processing_label)
         self.video_display_widget.setCurrentIndex(0)
+        self.controller.get_logger_gui().info("Setup Video Player")
 
         self.image_video_view.addWidget(self.image_frame_label)
         self.image_video_view.addWidget(self.video_display_widget)
 
         # Graph placeholder
         self.__graph_widget = GraphWidget(self.controller)
+        self.controller.get_logger_gui().info("Setup Graph Widget")
 
         self.splitter_h = QSplitter(Qt.Horizontal)
         self.splitter_h.setChildrenCollapsible(False)
@@ -144,6 +150,7 @@ class MainWindow(QMainWindow):
         self.test_action = QAction('TEST BUTTON', self)
         self.test_action.triggered.connect(self.get_graph_widget().plot)
         # self.menu_bar.addAction(self.test_action)
+        self.controller.get_logger_gui().info("Setup Widgets")
 
     def __open_settings(self):
         self.__settings_page.open()
@@ -151,10 +158,12 @@ class MainWindow(QMainWindow):
 
         # Might not be needed
         if result:
+            self.controller.get_logger_gui().info("Open Settings")
             reset_prompt = QMessageBox(QMessageBox.Information, "Settings", "Restart application to apply changes")
             reset_prompt.exec()
 
     def __import_image_func(self):
+        self.controller.get_logger_gui().info("Clicked Import Image")
         file_path, _ = QFileDialog.getOpenFileName(self, "Open File (*.jpg) (*.png)", "C:", "Images(*.jpg *.png)")
 
         if len(file_path) > 0:
@@ -167,6 +176,7 @@ class MainWindow(QMainWindow):
             self.__start_detection(file_name)
 
     def __import_video_func(self):
+        self.controller.get_logger_gui().info("Clicked Import Video")
         file_path, _ = QFileDialog.getOpenFileName(self, "Open File (*.mp4)", "C:", "Video Files (*.mp4)")
 
         if len(file_path) > 0:
@@ -178,6 +188,7 @@ class MainWindow(QMainWindow):
             self.__video_player.set_video(file_path)
 
     def __use_webcam_func(self):
+        self.controller.get_logger_gui().info("Clicked Use Webcam")
         self.image_video_view.setCurrentIndex(IMAGE_VIEW)
         self.cross_button.setDisabled(False)
         self.is_webcam_active = True
@@ -191,9 +202,11 @@ class MainWindow(QMainWindow):
     # Do as required
     def __cross_func(self):
         if self.is_webcam_active is True:
+            self.controller.get_logger_gui().info("Cancel webcam")
             self.is_webcam_active = False
             self.cross_button.setDisabled(False)
         elif self.is_processing_video is True:
+            self.controller.get_logger_gui().info("Cancel processing video")
             self.controller.empty_all_queues()
             self.cross_button.setDisabled(False)
             self.is_processing_video = False
@@ -243,6 +256,7 @@ class MainWindow(QMainWindow):
         return self.__settings_page
 
     def reset_folders_lists(self):
+        self.controller.get_logger_gui().info("Reset folders and release video")
         self.__video_player.release_video()
         for f in os.listdir(INPATH):
             file_path = os.path.join(INPATH, f)
@@ -261,9 +275,6 @@ class MainWindow(QMainWindow):
     def get_status(self):
         # 0 is Image view / 1 is Video View
         return self.image_video_view.currentIndex()
-
-
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
