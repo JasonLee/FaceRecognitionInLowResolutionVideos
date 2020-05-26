@@ -71,6 +71,7 @@ class GraphWidget(QWidget):
         self.__ax.set_yticklabels(self.__face_labels)
 
         self.canvas.draw()
+        self.controller.get_logger_gui().info("Plot Graph")
 
     def append_to_data(self, face_label, time):
         base_time = dt.datetime(2020, 1, 1, 0, 0)

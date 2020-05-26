@@ -10,3 +10,4 @@ venv
 images/
 .jpg
 .vscode
+*.log

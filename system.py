@@ -5,12 +5,8 @@
         INPATH: path to save the detected input images.
         BENCHMARCH_TIME: enable time cost tracking function.
 """
-import copy
-
 import torchvision
-import sys, os
 import threading
-from database.FaceData import FaceData
 
 from threads.SharedData import SharedData
 from facialDetection.webcamFDM import webcamFDM
@@ -47,13 +43,18 @@ def init_models():
 
     if controller.get_settings().value("Hardware", 0, int) == 0 and torch.cuda.is_available():
         hardware = torch.device("cuda:0")
-        print("Hardware is GPU")
+        controller.get_logger_system().info("Hardware is GPU")
     else:
         hardware = torch.device("cpu")
-        print("Hardware is CPU")
+        controller.get_logger_system().info("Hardware is CPU")
+
+    controller.get_logger_system().info("Setup Hardware")
 
     srganModel = superResolutionModel(hardware)
     recogModel = recognitionModel("./images", hardware)
+
+    controller.get_logger_system().info("Setup SR and FR")
+
 
 def start(inputMode):
     """Start function, linked with GUI to start threads.
@@ -76,7 +77,6 @@ def start(inputMode):
     threads.append(recog)
     for thread in threads:
         thread.start()
-    print("finished")
 
 def chooseDetectionMode(inputMode):
     """Used to choose which detection model to use, called by start function.
@@ -97,21 +97,25 @@ def detectionManagerDirectory(controller):
     Args:
         interface (userInteface.UI_Main.UI_MainWindow): GUI object
     """
-    print("DET: start")
+    controller.get_logger_system().info("DET: start")
     FDM = directoryFDM(controller,memory)
+
     if BENCHMARK_TIME:
         start = time.time()
+
     FDM.run(testForGAN, cv2_to_tensor)
+
     if BENCHMARK_TIME:
         elapsed = (time.time() - start)
         print('FACE DETECTION: ' + str(elapsed) + 's')
+
     memory.detDone.set()
 
     if controller.get_settings().value("Toggle SR", 1, int) == 1:
         memory.ganQueueCount.release()
 
     memory.recogQueueCount.release()
-    print("DET: done")
+    controller.get_logger_system().info("DET: done")
     return
 
 def empty_all_queues():
@@ -137,8 +141,8 @@ def detectionManagerWebcam(controller):
     Args:
         interface (userInteface.UI_Main.UI_MainWindow): GUI object
     """
-    print("DET: start")
-    FDM = webcamFDM(controller,memory)
+    controller.get_logger_system().info("DET: start")
+    FDM = webcamFDM(controller, memory)
     CAM = cv2.VideoCapture(0)
 
     try:
@@ -149,7 +153,7 @@ def detectionManagerWebcam(controller):
             elapsed = (time.time() - start)
             print('FACE DETECTION WEBCAM: ' + str(elapsed) + 'ns')
     except RuntimeError:
-    # TODO: WRITE TO ERROR LOG
+        controller.get_logger_system().error("Detection Error")
         raise
 
     memory.detDone.set()
@@ -158,7 +162,7 @@ def detectionManagerWebcam(controller):
         memory.ganQueueCount.release()
 
     memory.recogQueueCount.release()
-    print("DET: done")
+    controller.get_logger_system().info("DET: done")
     return
 
 
@@ -172,22 +176,21 @@ def ganManager(srganModel):
         #TODO: redo
         interface (userInteface.UI_Main.UI_MainWindow): GUI object
     """
-    generator = Generator(4).eval()
-    print("\tGAN: start")
+
+    controller.get_logger_system().info("GAN: start")
     i = 0
-    while (1):
+    while True:
         memory.ganQueueCount.acquire()
         if memory.detDone.is_set() and memory.ganQueue.empty():
-            print("\tGAN: done")
+            controller.get_logger_system().info("GAN: Done")
             memory.ganDone.set()
             memory.recogQueueCount.release()
             return
 
         face_data_to_process = memory.ganQueue.pop()
 
-        print("\tGAN: doing")
         if face_data_to_process is None:
-            print("\tGAN: error 0")
+            controller.get_logger_system().error("GAN Error")
             return
 
         num_retries = 1
@@ -207,10 +210,10 @@ def ganManager(srganModel):
                     print('\tSUPER RESOLUTION: ' + str(elapsed) + 's')
                 break
             except RuntimeError as err:
-                print("Error: OOM")
+                controller.get_logger_system().error("Error: Out of Memory")
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()
-            # TODO: WRITE TO ERROR LOG
+                controller.get_logger_system().error(err)
                 raise err
 
         # shift the image to the range (0, 1), by subtracting the minimum and dividing by the maximum pixel value range.
@@ -226,7 +229,6 @@ def ganManager(srganModel):
 
         i += 1
         face_data_to_process.set_data(normalised)
-        print("HERE GAN v2", face_data_to_process)
         memory.recogQueue.push(face_data_to_process)
         memory.recogQueueCount.release()
 
@@ -244,14 +246,14 @@ def recogManager(recogModel, controller):
         if memory.detDone.is_set() and memory.recogQueue.empty():
             if controller.get_settings().value("Toggle SR", 1, int) == 1 and not memory.ganDone.is_set():
                 pass
-            print("\t\tREC: done")
+            controller.get_logger_system().info("REC: Done")
             return
 
         face_data_to_process = memory.recogQueue.pop()
 
-        print("\t\tREC: doing")
+        controller.get_logger_system().info("REC: doing")
         if face_data_to_process is None:
-            print("\t\tREC: queue empty")
+            controller.get_logger_system().info("REC: queue empty")
         else:
             try:
                 if BENCHMARK_TIME:
@@ -260,8 +262,8 @@ def recogManager(recogModel, controller):
                 confidence, label = recogModel.recognize(image_data)
                 if BENCHMARK_TIME:
                     elapsed = (time.time() - start)
-                    print('\tFace Recognition: ' + str(elapsed) + 's')
-                    print('\tName: ' + label + ", Confidence: " + str(confidence))
+                    controller.get_logger_system().info('Face Recognition: ' + str(elapsed) + 's')
+                    controller.get_logger_system().info('Name: ' + label + ", Confidence: " + str(confidence))
             except RuntimeError:
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()

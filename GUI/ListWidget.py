@@ -32,6 +32,7 @@ class ListWidget(QWidget):
         self.tab1_live.addItem(list_item)
         self.tab1_live.setItemWidget(list_item, new_data)
         list_item.setSizeHint(new_data.sizeHint())
+        self.controller.get_logger_gui().info("Adding data to live tab")
 
     def get_live_list_widget(self):
         return self.tab1_live

@@ -2,9 +2,10 @@ from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QGroupBox, Q
 
 
 class SettingsDialog(QDialog):
-    def __init__(self, settings):
+    def __init__(self, settings, controller):
         super(SettingsDialog, self).__init__()
         self.settings = settings
+        self.controller = controller
 
         button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         button_box.accepted.connect(self.select_accept)
@@ -136,6 +137,7 @@ class SettingsDialog(QDialog):
         self.settings.setValue("Video Capture FPS", self._fps_combo_box.currentText())
         self.settings.setValue("Toggle SR", self._toggle_sr_check.checkState())
         self.settings.setValue("Face Recognition Minimum Confidence", self._min_combo_box.currentText())
+        self.controller.get_logger_gui().info("Settings Accepted")
         self.accept()
 
     def select_reject(self):
@@ -154,6 +156,7 @@ class SettingsDialog(QDialog):
         setting_value = self.settings.value("Face Recognition Minimum Confidence", "70", str)
         self._min_combo_box.setCurrentIndex(self._min_combo_box.findText(setting_value))
 
+        self.controller.get_logger_gui().info("Settings Rejected")
         self.reject()
 
 
