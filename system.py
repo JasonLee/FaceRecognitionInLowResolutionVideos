@@ -18,7 +18,7 @@ from FaceRec.Rec_Utils import *
 
 OUTPATH = './out'
 INPATH = './input'
-BENCHMARK_TIME = True
+BENCHMARK_TIME = False
 
 os.makedirs(OUTPATH, exist_ok=True)
 os.makedirs(INPATH, exist_ok=True)
@@ -118,7 +118,7 @@ def detectionManagerDirectory(controller):
     controller.get_logger_system().info("DET: done")
     return
 
-def empty_all_queues():
+def system_empty_all_queues():
     """ For some reason legacy code used custom queue"""
     if controller.get_settings().value("Toggle SR", 1, int) == 1:
         gan_queue = memory.ganQueue
@@ -148,10 +148,13 @@ def detectionManagerWebcam(controller):
     try:
         if BENCHMARK_TIME:
             start = time.time()
+
         FDM.run(CAM, testForGAN, cv2_to_tensor)
+
         if BENCHMARK_TIME:
             elapsed = (time.time() - start)
             print('FACE DETECTION WEBCAM: ' + str(elapsed) + 'ns')
+
     except RuntimeError:
         controller.get_logger_system().error("Detection Error")
         raise
@@ -198,6 +201,7 @@ def ganManager(srganModel):
             try:
                 if BENCHMARK_TIME:
                     start = time.time()
+
                 image_data = face_data_to_process.get_data()
 
                 if controller.get_settings().value("Save Image Toggle", 0, int) == 1:
@@ -258,8 +262,10 @@ def recogManager(recogModel, controller):
             try:
                 if BENCHMARK_TIME:
                     start = time.time()
-                    image_data = face_data_to_process.get_data()
+
+                image_data = face_data_to_process.get_data()
                 confidence, label = recogModel.recognize(image_data)
+
                 if BENCHMARK_TIME:
                     elapsed = (time.time() - start)
                     controller.get_logger_system().info('Face Recognition: ' + str(elapsed) + 's')

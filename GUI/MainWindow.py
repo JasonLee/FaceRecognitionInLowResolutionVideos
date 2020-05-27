@@ -99,7 +99,7 @@ class MainWindow(QMainWindow):
         self.toolbar.addAction(self.webcam_button)
 
         self.toolbar.addSeparator()
-        self.toolbar.addAction(self.tick_button)
+        # self.toolbar.addAction(self.tick_button)
         self.toolbar.addAction(self.cross_button)
         self.controller.get_logger_gui().info("Setup Tool Bar")
 
@@ -180,11 +180,9 @@ class MainWindow(QMainWindow):
         file_path, _ = QFileDialog.getOpenFileName(self, "Open File (*.mp4)", "C:", "Video Files (*.mp4)")
 
         if len(file_path) > 0:
-            self.cross_button.setDisabled(False)
             self.image_video_view.setCurrentIndex(VIDEO_VIEW)
             self.reset_folders_lists()
             shutil.copy(file_path, INPATH)
-            file_name = os.path.basename(file_path)
             self.__video_player.set_video(file_path)
 
     def __use_webcam_func(self):
@@ -214,7 +212,7 @@ class MainWindow(QMainWindow):
     def is_webcam_activated(self):
         return self.is_webcam_active
 
-    def reset_webcam(self):
+    def reset_frame(self):
         self.cross_button.setDisabled(True)
         self.clear_image_frame()
 
@@ -275,6 +273,7 @@ class MainWindow(QMainWindow):
     def get_status(self):
         # 0 is Image view / 1 is Video View
         return self.image_video_view.currentIndex()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

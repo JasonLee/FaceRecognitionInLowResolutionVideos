@@ -25,7 +25,6 @@ class directoryFDM(facialDetectionManager):
                 testForGAN: function that checks if super resolution should be applied to a face.
                 cv2_to_tensor: function that converts an OpenCV image into a tensor.
         """
-        self.faces_counted = 0
         self.controller.get_logger_system().info("DET: using directory")
         # Files the newest file in the dir /input
         # TODO GET RID OF USING INPUT
@@ -45,7 +44,7 @@ class directoryFDM(facialDetectionManager):
 
             cv2_video = cv2.VideoCapture(self.indir + '/' + file)
 
-            video_writer = self.set_up_video_writer(cv2_video)
+            video_writer = self.set_up_video_writer(cv2_video, "processed_video.mp4")
 
             frame_rate = cv2_video.get(cv2.CAP_PROP_FPS)
             seconds_per_frame = self.controller.get_settings().value("Video Capture FPS", 0, int)
@@ -68,18 +67,10 @@ class directoryFDM(facialDetectionManager):
             video_writer.release()
             cv2.destroyAllWindows()
 
-            self.controller.finished_video_processing()
+            self.controller.finished_video_processing("out/processed_video.mp4")
             self.frame_counter = 0
             self.controller.set_video_processing_flag(False)
 
         else:
             self.controller.get_logger_system().info("DET: Error, unrecognised input file")
         self.controller.get_logger_system().info("Processing video - Done")
-
-    def set_up_video_writer(self, cv2_video_obj):
-        height = int(cv2_video_obj.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        width = int(cv2_video_obj.get(cv2.CAP_PROP_FRAME_WIDTH))
-        fps_new_video = 1
-
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        return cv2.VideoWriter(self.outdir + '/' + "processed.mp4", fourcc, fps_new_video, (width, height))

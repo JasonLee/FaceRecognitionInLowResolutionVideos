@@ -37,7 +37,6 @@ class facialDetectionManager:
         frame: the frame to detect faces in (OpenCV image).
         outdir: the output directory (String).
         faces: the list of faces detected from the frame (List of OpenCV images).
-        faces_counted: the number of faces detected so far in an image or video (Integer).
         frames_counted: the number of frames read from a video, or 1 if the source is an image (Integer).
         minimum_confidence: the threshold for face detection, faces detected with a confidence
         greater than or equal to this value will be counted (Decimal).
@@ -54,7 +53,6 @@ class facialDetectionManager:
         self.frame = None
         self.outdir = 'out'
         self.faces = []
-        self.faces_counted = 0
         self.frames_counted = 0
         self.model = cv2.dnn.readNetFromCaffe(facialDetectionManager.ARCHITECTURE, facialDetectionManager.WEIGHTS)
         self.controller = controller
@@ -118,10 +116,10 @@ class facialDetectionManager:
 
                     face_data = FaceData((startX, startY, endX, endY), time_of_frame)
                     self.faces.append(face_data)
-                    self.faces_counted += 1
         # stores the positions of all faces found in the image - as a collection of (x,y,w,h) data.
         boxedFaces = self.drawBoxAroundFaces()
-        if True:
+
+        if self.controller.get_settings().value("Save Image Toggle", 0, int) == 1:
             path = os.path.join(self.outdir, 'detected' + str(self.frames_counted) + '.jpg')
         else:
             path = os.path.join(self.outdir, 'CurrentFrame' + '.jpg')
@@ -167,3 +165,12 @@ class facialDetectionManager:
         """
 
         facialDetectionManager.MINIMUM_CONFIDENCE = self.controller.get_settings().value("Face Detection Confidence", 0, float)
+
+    def set_up_video_writer(self, cv2_video_obj, file_name):
+        height = int(cv2_video_obj.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        width = int(cv2_video_obj.get(cv2.CAP_PROP_FRAME_WIDTH))
+        fps_new_video = 1
+
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        return cv2.VideoWriter(self.outdir + '/' + file_name, fourcc, fps_new_video, (width, height))
+
