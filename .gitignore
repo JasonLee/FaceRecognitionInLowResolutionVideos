@@ -6,6 +6,7 @@ images/*
 # exception to the rule
 !input/.keep
 !out/.keep
+!images/.keep
 for_system
 *.pth
 *.caffemodel
