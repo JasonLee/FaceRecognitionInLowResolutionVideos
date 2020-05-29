@@ -22,7 +22,7 @@ class ListWidget(QWidget):
         self.tab2_total = QListWidget()
 
         self.tabs.addTab(self.tab1_live, "Live Results")
-        self.tabs.addTab(self.tab2_total, "Organised Results")
+        # self.tabs.addTab(self.tab2_total, "Organised Results")
 
         self.layout.addWidget(self.tabs)
 
@@ -84,14 +84,14 @@ class ListWidget(QWidget):
             self.button_layout = QVBoxLayout()
             self.button_section.setLayout(self.button_layout)
 
-            self.info_button = QPushButton(self.button_section)
-            self.info_button.setText("INFO")
+            # self.info_button = QPushButton(self.button_section)
+            # self.info_button.setText("INFO")
 
             self.modify_button = QPushButton(self.button_section)
             self.modify_button.setText("MODIFY")
             self.modify_button.clicked.connect(self.__modify_label)
 
-            self.button_layout.addWidget(self.info_button)
+            # self.button_layout.addWidget(self.info_button)
             self.button_layout.addWidget(self.modify_button)
 
             self.layout.addWidget(self.button_section)

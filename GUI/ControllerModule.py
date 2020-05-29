@@ -1,11 +1,15 @@
 import sys
 import logging
+import cv2
 
 from PyQt5.QtCore import QSettings
 from PyQt5.QtWidgets import QApplication
 
 from GUI.MainWindow import MainWindow
-from system import set_controller, start, add_corrected_face
+from system import set_controller, start, add_corrected_face, system_empty_all_queues
+
+IMAGE_VIEW = 0
+VIDEO_VIEW = 1
 
 
 class Controller:
@@ -13,14 +17,15 @@ class Controller:
 
         app = QApplication(sys.argv)
         self._settings = QSettings('settings.ini', QSettings.IniFormat)
+        self.current_video_cv2 = None
 
         self._logger_gui = self.setup_logger("MainGUI")
         self._logger_controller = self.setup_logger("Controller")
         self._logger_system = self.setup_logger("System")
 
-        self.__view = MainWindow(self)
-
         set_controller(self)
+
+        self.__view = MainWindow(self)
 
         self.__view.show()
         app.exec()
@@ -53,7 +58,7 @@ class Controller:
 
     def view_stop_webcam(self):
         self._logger_controller.info("Stop webcam")
-        self.__view.reset_webcam()
+        self.__view.reset_frame()
 
     def is_webcam_activated(self):
         return self.__view.is_webcam_activated()
@@ -85,13 +90,17 @@ class Controller:
         # 0 is Image / 1 is View
         return self.__view.get_status()
 
-    def finished_video_processing(self):
+    def finished_video_processing(self, path):
         self._logger_controller.info("Set processed video to video player")
         self.__view.video_display_widget.setCurrentIndex(0)
-        self.__view.get_video_player().set_video("out/processed.mp4")
+        self.__view.image_video_view.setCurrentIndex(1)
+        self.__view.get_video_player().set_video(path)
 
     def empty_all_queues(self):
         pass
+        # Cancels all queues regardless of whats in progress
+        # Currently just kills video/webcam feed so no new images are added
+        # system_empty_all_queues()
 
     def set_video_processing_flag(self, flag):
         self.__view.is_processing_video = flag
@@ -111,5 +120,20 @@ class Controller:
     def get_logger_system(self):
         return self._logger_system
 
+    def set_current_video_cv2(self, current_video_path):
+        if current_video_path is None:
+            self.current_video_cv2.release()
+            self.current_video_cv2 = None
+            return
+
+        self.current_video_cv2 = cv2.VideoCapture(current_video_path)
+        if self.current_video_cv2 is None:
+            self.get_logger_gui().error("Can't get VideoCapture")
+
+    def set_disabled_cross_button(self, bool):
+        self.__view.cross_button.setDisabled(bool)
+
+    def get_current_video_cv2(self):
+        return self.current_video_cv2
 
 

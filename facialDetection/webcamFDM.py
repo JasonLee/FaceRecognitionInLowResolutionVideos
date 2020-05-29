@@ -1,5 +1,10 @@
-import cv2, os
+import time
+
+import cv2
+import os
+
 from facialDetection.facialDetectionManager import facialDetectionManager
+
 
 class webcamFDM(facialDetectionManager):
     """This class applies face detection to frames obtained through a webcam.
@@ -24,11 +29,10 @@ class webcamFDM(facialDetectionManager):
             testForGAN: function that checks if super resolution should be applied to a face.
             cv2_to_tensor: function that converts an OpenCV image into a tensor.
         """
-        self.faces_counted = 0
         self.frames_counted = 0
         self.chosen_face = 0
+        video_writer = self.set_up_video_writer(cam, "processed_webcam.mp4")
         frame_rate = cam.get(cv2.CAP_PROP_FPS)
-        self.controller.get_logger_system().info("frame_rate - ", frame_rate)
         # around 3 fps
         seconds_per_frame = 1/3
 
@@ -39,14 +43,19 @@ class webcamFDM(facialDetectionManager):
             if self.frames_counted % frame_sample == 0:
                 time_of_frame = cam.get(cv2.CAP_PROP_POS_MSEC)
                 self.setFrame(cv2_image)
-                self.locateFaces(time_of_frame)
+                new_frame = self.locateFaces(time_of_frame)
+                video_writer.write(new_frame)
                 self.choose_face()
                 self.processFrame(testForGAN, cv2_to_tensor)
             self.frames_counted += 1
 
-        self.controller.view_stop_webcam()
-        cam.release()  # Attempt to Kill the webcam, DOESN@T SEEM TO WORK
+        video_writer.release()
+        cam.release()
         cv2.destroyAllWindows()
+
+        self.controller.view_stop_webcam()
+        self.controller.finished_video_processing("out/processed_webcam.mp4")
+
 
     def choose_face(self):
         """temporary fix to achieve real time recognition: reduces a face list of length=n from a frame to a list of length=1"""
