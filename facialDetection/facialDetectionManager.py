@@ -1,5 +1,10 @@
-import os, cv2
+import copy
+import os, cv2, sys
+from database.FaceData import FaceData
+sys.path.append("..")
 MINIMUM_BICUBIC_RES = 100
+
+
 def get_resolution(cv2_image):
     """Get height and width of image.
     
@@ -32,7 +37,6 @@ class facialDetectionManager:
         frame: the frame to detect faces in (OpenCV image).
         outdir: the output directory (String).
         faces: the list of faces detected from the frame (List of OpenCV images).
-        faces_counted: the number of faces detected so far in an image or video (Integer).
         frames_counted: the number of frames read from a video, or 1 if the source is an image (Integer).
         minimum_confidence: the threshold for face detection, faces detected with a confidence
         greater than or equal to this value will be counted (Decimal).
@@ -42,18 +46,19 @@ class facialDetectionManager:
     """
     ARCHITECTURE = "facialDetection/deploy.prototxt.txt"
     WEIGHTS = "facialDetection/res10_300x300_ssd_iter_140000.caffemodel"
+
     MINIMUM_CONFIDENCE = 0.2
 
-    def __init__(self,interface,memory):
+    def __init__(self, controller, memory):
         self.frame = None
         self.outdir = 'out'
         self.faces = []
-        self.faces_counted = 0
         self.frames_counted = 0
         self.model = cv2.dnn.readNetFromCaffe(facialDetectionManager.ARCHITECTURE, facialDetectionManager.WEIGHTS)
-        self.gui = interface
+        self.controller = controller
         self.memory = memory
-        self.isDirectory = False
+        self.frame_counter = 0
+        self.set_detection_confidence()
 
     def setFrame(self, frame):
         """ Sets the current frame.
@@ -63,9 +68,6 @@ class facialDetectionManager:
         """
         self.frame = frame
 
-    def shouldProcessFrame(self):
-        return self.frames_counted % 5 == 0
-
     def processFrame(self, testForGAN, cv2_to_tensor):
         """ Processes a frame by drawing boxes around faces, storing detected faces in the output directory and
         incrementing the number of frames counted.
@@ -74,30 +76,21 @@ class facialDetectionManager:
             testForGAN: function that checks if super resolution should be applied to a face.
             cv2_to_tensor: function that converts an OpenCV image into a tensor.
         """
-        super_resolution_enabled = self.gui.getSRGANToggleFlag()
-        for f in self.extractFaces():
-            # print("DET: doing")
+        for cropped_face_data in self.extractFaces():
 
-            if super_resolution_enabled and testForGAN(f):
-                if (self.isDirectory and testForBicubic(f)):
-                    print("Bicubic")
-                    dsize = 2 * MINIMUM_BICUBIC_RES
-                    f = cv2.resize(f, (dsize, dsize), interpolation = cv2.INTER_CUBIC)
-                try:
-                    tensor = cv2_to_tensor(f)
-                except:
-                    return
-                self.memory.ganQueue.push(tensor.unsqueeze(0))
+            face_data = cropped_face_data.get_data()
+            tensor = cv2_to_tensor(face_data)
+
+            if testForGAN(face_data) and self.controller.get_settings().value("Toggle SR", 1, int) == 1:
+                cropped_face_data.set_data(tensor.unsqueeze(0))
+                self.memory.ganQueue.push(cropped_face_data)
                 self.memory.ganQueueCount.release()
             else:
-                try:
-                    tensor = cv2_to_tensor(f)
-                except:
-                    return
-                self.memory.recogQueue.push(tensor.unsqueeze(0))
+                cropped_face_data.set_data(tensor.unsqueeze(0))
+                self.memory.recogQueue.push(cropped_face_data)
                 self.memory.recogQueueCount.release()
 
-    def locateFaces(self):
+    def locateFaces(self, time_of_frame):
         """ Locates the faces in the frame and updates the number of faces counted"""
 
         # NOTE: The network was trained on RGB images, so do not apply it to grayscale images
@@ -120,17 +113,23 @@ class facialDetectionManager:
                     startY = int( max(0, startY * frame_height) )
                     endX = int( min(frame_width, endX * frame_width) )
                     endY = int( min(frame_height, endY * frame_height) )
-                    self.faces.append( (startX,startY,endX,endY) )
-                    self.faces_counted += 1
+
+                    face_data = FaceData((startX, startY, endX, endY), time_of_frame)
+                    self.faces.append(face_data)
         # stores the positions of all faces found in the image - as a collection of (x,y,w,h) data.
         boxedFaces = self.drawBoxAroundFaces()
-        if self.gui.getSaveImageToggleFlag():
+
+        if self.controller.get_settings().value("Save Image Toggle", 0, int) == 1:
             path = os.path.join(self.outdir, 'detected' + str(self.frames_counted) + '.jpg')
         else:
             path = os.path.join(self.outdir, 'CurrentFrame' + '.jpg')
         cv2.imwrite(path, boxedFaces)
-        self.gui.insertDetected(path)
-        self.gui.setDetected(self.frames_counted)
+
+        self.frame_counter += 1
+        self.controller.set_image_view(path)
+
+        return boxedFaces
+
 
     def extractFaces(self):
         """ Crops the faces from the frame and returns them in a list.
@@ -139,8 +138,11 @@ class facialDetectionManager:
             images of faces that have been cropped so that the majority of the background is cropped out.
         """
         cropped_faces = []
-        for (startX, startY, endX, endY) in self.faces:
-            cropped_faces.append( self.frame[startY : endY, startX : endX] )
+        for face_data in self.faces:
+            (startX, startY, endX, endY) = face_data.get_data()
+
+            cropped_face_data = FaceData(self.frame[startY: endY, startX: endX], face_data.get_time())
+            cropped_faces.append(cropped_face_data)
         return cropped_faces
 
     def drawBoxAroundFaces(self):
@@ -149,17 +151,26 @@ class facialDetectionManager:
         Returns:
             The updated frame.
         """
-        for (startX, startY, endX, endY) in self.faces:
-            cv2.rectangle(self.frame, (startX, startY), (endX, endY), (255, 0, 0), 2)
+        for face_data in self.faces:
+            (startX, startY, endX, endY) = face_data.get_data()
+            cv2.rectangle(self.frame, (startX, startY), (endX, endY), (0, 0, 255), 1, cv2.LINE_AA)
         return self.frame
 
-def set_detection_confidence(confidence):
-    """Sets the minimum confidence that is used by face detection.
+    def set_detection_confidence(self):
+        """Sets the minimum confidence that is used by face detection.
 
-    Args:
-        confidence (string): value can be 0.2/0.4/0.6/0.8, faces detected with a confidence equal to or above this
-                             value will be processed by the system.
-    """
-    value = float(confidence)
-    facialDetectionManager.MINIMUM_CONFIDENCE = value
-    # print("Minimum confidence set to " + confidence)
+        Args:
+            confidence (string): value can be 0.2/0.4/0.6/0.8, faces detected with a confidence equal to or above this
+                                 value will be processed by the system.
+        """
+
+        facialDetectionManager.MINIMUM_CONFIDENCE = self.controller.get_settings().value("Face Detection Confidence", 0, float)
+
+    def set_up_video_writer(self, cv2_video_obj, file_name):
+        height = int(cv2_video_obj.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        width = int(cv2_video_obj.get(cv2.CAP_PROP_FRAME_WIDTH))
+        fps_new_video = 1
+
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        return cv2.VideoWriter(self.outdir + '/' + file_name, fourcc, fps_new_video, (width, height))
+

@@ -1,11 +1,17 @@
 *.pyc
-input
-out
+# exclude everything
+input/*
+out/*
+images/*
+# exception to the rule
+!input/.keep
+!out/.keep
 for_system
 *.pth
 *.caffemodel
 _py_cache_
 .idea
 venv
-images/
-*.png
+.jpg
+.vscode
+*.log
