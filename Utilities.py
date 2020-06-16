@@ -57,20 +57,6 @@ def cv2_to_tensor(cv2_image):
     tensor = Variable(ToTensor()(pil_im))
     return tensor
 
-def testForBicubic(cv2_image):
-    """Looks at the size of the image. If its below 64bits for either axis then its upscaled with Bicubic.
-
-    Args:
-        cv2_image: an opencv image.
-
-    Returns:
-        bool: if bicubic operation is needed.
-    """
-    res = get_resolution(cv2_image)
-    if (res[0] < MINIMUM_BICUBIC_RES or res[1] < MINIMUM_BICUBIC_RES):
-        return True
-    return False
-
 def testForGAN(cv2_image):
     """ Test if image resolution is smaller than threshold for super resolution.
 

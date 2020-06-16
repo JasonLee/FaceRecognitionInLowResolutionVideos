@@ -2,6 +2,7 @@ import logging
 import os
 import shutil
 import sys
+import threading
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QPixmap
@@ -88,7 +89,6 @@ class MainWindow(QMainWindow):
 
         self.tick_button = icon_action_mapper(
             ICON_IMAGE_PATH + "tick_icon.png", "new", self.__tick_func, "???")
-        self.tick_button.setDisabled(True)
 
         self.cross_button = icon_action_mapper(
             ICON_IMAGE_PATH + "cross_icon.png", "new", self.__cross_func, "Cancel current event")
@@ -169,11 +169,10 @@ class MainWindow(QMainWindow):
         if len(file_path) > 0:
             self.image_video_view.setCurrentIndex(IMAGE_VIEW)
             self.reset_folders_lists()
-            shutil.copy(file_path, INPATH)
+            
+            self.controller.set_file_path(file_path)
 
-            file_name = os.path.basename(file_path)
-
-            self.__start_detection(file_name)
+            self.__setup_view_image(file_path)
 
     def __import_video_func(self):
         self.controller.get_logger_gui().info("Clicked Import Video")
@@ -182,7 +181,8 @@ class MainWindow(QMainWindow):
         if len(file_path) > 0:
             self.image_video_view.setCurrentIndex(VIDEO_VIEW)
             self.reset_folders_lists()
-            shutil.copy(file_path, INPATH)
+            
+            self.controller.set_file_path(file_path)
             self.__video_player.set_video(file_path)
 
     def __use_webcam_func(self):
@@ -216,8 +216,7 @@ class MainWindow(QMainWindow):
         self.cross_button.setDisabled(True)
         self.clear_image_frame()
 
-    def __start_detection(self, file_name):
-        file_name = os.path.join(INPATH, file_name)
+    def __setup_view_image(self, file_name):
         self.set_image_frame(file_name)
 
         # file_name doesn't actually do anything. Works by taking the image from /input
