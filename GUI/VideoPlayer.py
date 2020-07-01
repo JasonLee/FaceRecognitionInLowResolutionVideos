@@ -84,6 +84,7 @@ class VideoPlayer(QWidget):
     def set_video(self, file_path):
         """ Sets Video based on Video path. """
         self.video_path = file_path
+        self.process_button.setDisabled(False)
         print(file_path)
         self.controller.get_logger_gui().info("Pull in new video path: " + self.video_path)
         self.media_player.setMedia(QMediaContent(QUrl.fromLocalFile(file_path)))
@@ -113,6 +114,7 @@ class VideoPlayer(QWidget):
         self.parent_container.video_display_widget.setCurrentIndex(1)
         self.controller.image_selected()
         self.media_player.pause()
+        self.process_button.setDisabled(True)
 
     def play(self):
         if self.media_player.state() == QMediaPlayer.PlayingState:

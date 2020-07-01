@@ -24,7 +24,6 @@ class MainWindowTest(unittest.TestCase):
         self.assertEqual(self.gui.import_images_button.isEnabled(), True)
         self.assertEqual(self.gui.import_videos_button.isEnabled(), True)
         self.assertEqual(self.gui.webcam_button.isEnabled(), True)
-        self.assertEqual(self.gui.tick_button.isEnabled(), False)
         self.assertEqual(self.gui.cross_button.isEnabled(), False)
 
     def test_adding_to_live_list(self):

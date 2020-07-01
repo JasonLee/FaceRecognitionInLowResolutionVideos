@@ -18,6 +18,7 @@ class Controller:
         app = QApplication(sys.argv)
         self._settings = QSettings('settings.ini', QSettings.IniFormat)
         self.current_video_cv2 = None
+        self.path_to_file = ""
 
         self._logger_gui = self.setup_logger("MainGUI")
         self._logger_controller = self.setup_logger("Controller")
@@ -95,6 +96,7 @@ class Controller:
         self.__view.video_display_widget.setCurrentIndex(0)
         self.__view.image_video_view.setCurrentIndex(1)
         self.__view.get_video_player().set_video(path)
+        self.__view.get_video_player().process_button.setDisabled(True)
 
     def empty_all_queues(self):
         pass
@@ -135,5 +137,11 @@ class Controller:
 
     def get_current_video_cv2(self):
         return self.current_video_cv2
+
+    def set_file_path(self, file):
+        self.path_to_file = file
+    
+    def get_file_path(self):
+        return self.path_to_file
 
 

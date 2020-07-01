@@ -204,7 +204,7 @@ def ganManager(srganModel):
 
                 image_data = face_data_to_process.get_data()
 
-                if controller.get_settings().value("Save Image Toggle", 0, int) == 1:
+                if controller.get_settings().value("Save Image Toggle", 0, int) == 2:
                     torchvision.utils.save_image(image_data.clone(), "./out/" + "beforeSuperResolution" + str(i) + ".png")
 
                 tensor = srganModel.super_resolution(image_data)
@@ -228,7 +228,7 @@ def ganManager(srganModel):
         else:
             normalised = torch.zeros(tensor.size())
 
-        if controller.get_settings().value("Save Image Toggle", 0, int) == 1:
+        if controller.get_settings().value("Save Image Toggle", 0, int) == 2:
             torchvision.utils.save_image(normalised.clone(), "./out/" + "AfterSuperResolution" + str(i) + ".png")
 
         i += 1
@@ -283,7 +283,7 @@ def recogManager(recogModel, controller):
                     label = "Unknown"
 
             # TODO: Get rid of dependency of saving images
-            # if controller.get_settings().value("Save Image Toggle", 0, int) == 1:
+            # if controller.get_settings().value("Save Image Toggle", 0, int) == 2:
             torchvision.utils.save_image(image_data, "./out/" + str(i) + ".png")
 
             # PYSIGNALS
