@@ -96,6 +96,7 @@ class Controller:
         self.__view.video_display_widget.setCurrentIndex(0)
         self.__view.image_video_view.setCurrentIndex(1)
         self.__view.get_video_player().set_video(path)
+        self.__view.get_video_player().process_button.setDisabled(True)
 
     def empty_all_queues(self):
         pass

@@ -15,7 +15,7 @@ class webcamFDM(facialDetectionManager):
         video_writer = self.set_up_video_writer(webcam_source, "processed_webcam.mp4")
         frame_rate = webcam_source.get(cv2.CAP_PROP_FPS)
         # around 3 fps
-        seconds_per_frame = 1 / 3
+        seconds_per_frame = 1 / float(self.controller.get_settings().value("Webcam FPS", "15", str))
 
         frame_sample = int(float(frame_rate) * seconds_per_frame)
 

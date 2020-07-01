@@ -121,7 +121,7 @@ class facialDetectionManager:
     def set_up_video_writer(self, cv2_video_obj, file_name):
         height = int(cv2_video_obj.get(cv2.CAP_PROP_FRAME_HEIGHT))
         width = int(cv2_video_obj.get(cv2.CAP_PROP_FRAME_WIDTH))
-        fps_new_video = 1
+        fps_new_video = self.controller.get_settings().value("Video Capture FPS", 0, int)
 
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         return cv2.VideoWriter(facialDetectionManager.OUT_DIR + '/' + file_name, fourcc, fps_new_video, (width, height))
