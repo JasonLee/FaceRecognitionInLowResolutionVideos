@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 """This module defines utility class for face recognition system that can be used in software"""
 import warnings
-import torch
 from FaceRec.DatabaseManagement import *
 from FaceRec.model import *
 from torchvision import transforms
 from skimage import transform
 import random
-import multiprocessing
 warnings.filterwarnings("ignore")
 
 
