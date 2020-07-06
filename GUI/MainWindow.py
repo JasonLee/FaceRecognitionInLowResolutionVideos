@@ -14,6 +14,7 @@ from GUI.GraphWidget import GraphWidget
 from GUI.ListWidget import ListWidget
 from GUI.VideoPlayer import VideoPlayer
 from GUI.Settings import SettingsDialog
+from GUI.DbAddDialog import AddingPeopleDialog, AddingFaceDialog
 
 INPATH = 'input'
 OUTPATH = 'out'
@@ -94,6 +95,20 @@ class MainWindow(QMainWindow):
             ICON_IMAGE_PATH + "cross_icon.png", "new", self.__cross_func, "Cancel current event")
         self.cross_button.setDisabled(True)
 
+        self.add_person_to_db = icon_action_mapper(
+             ICON_IMAGE_PATH + "tick_icon.png", "new", self._db_add_person, "Add person to db")
+
+        self.add_face_to_db = icon_action_mapper(
+            ICON_IMAGE_PATH + "tick_icon.png", "new", self._db_add_face_image, "Add identifying face to db")
+
+        self.remove_image_from_db = icon_action_mapper(
+            ICON_IMAGE_PATH + "tick_icon.png", "new", self._db_remove_face_image, "Remove face image from db")
+
+        self.remove_people_from_db = icon_action_mapper(
+            ICON_IMAGE_PATH + "tick_icon.png", "new", self._db_remove_people, "Remove person from db")
+
+            
+
         self.toolbar.addAction(self.import_images_button)
         self.toolbar.addAction(self.import_videos_button)
         self.toolbar.addAction(self.webcam_button)
@@ -101,6 +116,14 @@ class MainWindow(QMainWindow):
         self.toolbar.addSeparator()
         # self.toolbar.addAction(self.tick_button)
         self.toolbar.addAction(self.cross_button)
+        self.toolbar.addSeparator()
+
+        self.toolbar.addAction(self.add_person_to_db)
+        self.toolbar.addAction(self.add_face_to_db)
+        self.toolbar.addAction(self.remove_image_from_db)
+        self.toolbar.addAction(self.remove_people_from_db)
+
+
         self.controller.get_logger_gui().info("Setup Tool Bar")
 
     def __setup_layout(self):
@@ -208,6 +231,24 @@ class MainWindow(QMainWindow):
             self.controller.empty_all_queues()
             self.cross_button.setDisabled(False)
             self.is_processing_video = False
+
+    def _db_add_person(self):
+        add_people_page = AddingPeopleDialog(self.controller)
+        add_people_page.open()
+        add_people_page.exec()
+        del add_people_page
+
+    def _db_add_face_image(self):
+        add_face_page = AddingFaceDialog(self.controller)
+        add_face_page.open()
+        add_face_page.exec()
+        del add_face_page
+
+    def _db_remove_people(self):
+        pass
+
+    def _db_remove_face_image(self):
+        pass
 
     def is_webcam_activated(self):
         return self.is_webcam_active

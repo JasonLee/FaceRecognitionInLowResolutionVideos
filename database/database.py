@@ -1,9 +1,8 @@
 import sqlite3
 import atexit
 
-TEST_FOLDER = 'images/'
-TEST_IMAGE = 'images/Jason/frame26.png'
-TEST_IMAGE2 = 'images/Jocelyn/823.png'
+TEST_IMAGE = 'images/frame26.png'
+TEST_IMAGE2 = 'images/823.png'
 
 conn = sqlite3.connect('face.db')
 conn.row_factory = lambda c, row: row[0]
@@ -24,10 +23,12 @@ def init_database():
     conn.commit()
 
     insert_people('Jason')
-    insert_face('Jason', TEST_IMAGE)
+    insert_face_file('Jason', TEST_IMAGE)
 
     insert_people('Jocelyn')
-    insert_face('Jocelyn', TEST_IMAGE2)
+    insert_face_file('Jocelyn', TEST_IMAGE2)
+
+    insert_people('Joe')
 
 def convert_to_binary_data(filename):
     # Convert digital data to binary format
@@ -50,7 +51,7 @@ def insert_people(name):
         print("Failed to insert a new person into the table: ", error)
 
 
-def insert_face(people_name, filename):
+def insert_face_file(people_name, filename):
     try:
         sqlite_insert_blob_query = """INSERT INTO face(people_id, image) VALUES (?, ?)"""
 
@@ -63,6 +64,25 @@ def insert_face(people_name, filename):
 
         # Convert data into tuple format
         data_tuple = (people_id, face_image)
+
+        cursor.execute(sqlite_insert_blob_query, data_tuple)
+        conn.commit()
+
+    except conn.Error as error:
+        print("Failed to insert face data into the table: ", error)
+
+def insert_face_as_data(people_name, face_data):
+    try:
+        sqlite_insert_blob_query = """INSERT INTO face(people_id, image) VALUES (?, ?)"""
+
+        people_id = get_people_id(people_name)
+
+        if people_id is None:
+            raise ValueError('Cannot find people in table with given name!')
+
+
+        # Convert data into tuple format
+        data_tuple = (people_id, face_data)
 
         cursor.execute(sqlite_insert_blob_query, data_tuple)
         conn.commit()
@@ -89,7 +109,7 @@ def get_people_image(name):
 
 def get_all_people_names():
     try:
-        cursor.execute("""SELECT people_name FROM people""")
+        cursor.execute("""SELECT people.people_name FROM people WHERE people.people_id IN(SELECT people_id FROM face)""")
     except conn.Error as error:
         print("Failed to get people name from table: ", error)
 
@@ -102,6 +122,9 @@ def get_all_people_and_image():
         print("Failed to get people name and image from table: ", error)
 
     return cursor.fetchall()
+
+
+
 
 
 

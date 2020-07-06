@@ -16,9 +16,8 @@ class recognitionModel(object):
         database (str): path of database root directory
         hardware (str): initial hardware to put the network in.
     """
-    def __init__(self, database, hardware):
-        self.__database_path = database
-        self.__database = Database(database)
+    def __init__(self, hardware):
+        self.__database = Database()
         self.__hardware = hardware
         self.__model = FaceNetModel()
         self.__model.load_state_dict(torch.load("./FaceRec/FaceRecModel.pth",map_location=hardware))
@@ -27,8 +26,8 @@ class recognitionModel(object):
         self.__buildBaseLine()
 
     def add_face(self, identity, face):
-        self.__database.saveImage(identity, str(random.randint(1,1000)), face)
-        self.__database = Database(self.__database_path)
+        self.__database.saveImage(identity, face)
+        self.__database = Database()
         self.__buildBaseLine()
 
     def __buildBaseLine(self):
