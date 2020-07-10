@@ -22,14 +22,6 @@ def init_database():
 
     conn.commit()
 
-    insert_people('Jason')
-    insert_face_file('Jason', TEST_IMAGE)
-
-    insert_people('Jocelyn')
-    insert_face_file('Jocelyn', TEST_IMAGE2)
-
-    insert_people('Joe')
-
 def convert_to_binary_data(filename):
     # Convert digital data to binary format
     with open(filename, 'rb') as file:
@@ -103,15 +95,23 @@ def get_people_image(name):
     try:
         cursor.execute("""SELECT face.image FROM face INNER JOIN people ON face.people_id = people.people_id WHERE people.people_name=?""", (name,))
     except conn.Error as error:
-        print("Failed to get people image from table: ", error)
+        print("Failed to get people image from table:", error)
 
     return cursor.fetchall()
 
 def get_all_people_names():
     try:
-        cursor.execute("""SELECT people.people_name FROM people WHERE people.people_id IN(SELECT people_id FROM face)""")
+        cursor.execute("""SELECT people.people_name FROM people WHERE people.people_id IN (SELECT people_id FROM face)""")
     except conn.Error as error:
-        print("Failed to get people name from table: ", error)
+        print("Failed to get people name from table:", error)
+
+    return cursor.fetchall()
+
+def get_all_people_names_unsafe():
+    try:
+        cursor.execute("""SELECT people.people_name FROM people""")
+    except conn.Error as error:
+        print("Failed to get people name from table:", error)
 
     return cursor.fetchall()
 
@@ -123,10 +123,31 @@ def get_all_people_and_image():
 
     return cursor.fetchall()
 
+def delete_person(name):
+    try:
+        sqlite_insert_blob_query = """DELETE FROM people WHERE people_name =?"""
 
+        # Convert data into tuple format
+        data_tuple = (name,)
 
+        cursor.execute(sqlite_insert_blob_query, data_tuple)
+        conn.commit()
 
+    except conn.Error as error:
+        print("Failed to delete person", error)
 
+def delete_face_image(face_data):
+    try:
+        sqlite_insert_blob_query = """DELETE FROM face WHERE image =?"""
+
+        # Convert data into tuple format
+        data_tuple = (face_data,)
+
+        cursor.execute(sqlite_insert_blob_query, data_tuple)
+        conn.commit()
+
+    except conn.Error as error:
+        print("Failed to delete face", error)
 
 def exit_handler():
     # Close db connect

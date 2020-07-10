@@ -1,4 +1,4 @@
-from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtCore import pyqtSignal, Qt, QObject
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QListWidget, QListWidgetItem, QHBoxLayout, QLabel, \
     QPushButton, QInputDialog, QLineEdit

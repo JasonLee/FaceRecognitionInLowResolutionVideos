@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QFormLayout, QLineEdit, QMessageBox, QComboBox, QFileDialog, QLabel, QPushButton
-from database.database import get_all_people_names, insert_people, insert_face_file
+from database.database import get_all_people_names, insert_people, insert_face_file, get_all_people_names_unsafe
 
 class AddingPeopleDialog(QDialog):
     def __init__(self, controller):
@@ -21,7 +21,7 @@ class AddingPeopleDialog(QDialog):
 
 
     def select_accept(self):
-        if self.line.text() in get_all_people_names():
+        if self.line.text() in get_all_people_names_unsafe():
             reset_prompt = QMessageBox(QMessageBox.Information, "Error", "Person already exists in DB.")
             reset_prompt.exec()
             return
@@ -42,7 +42,7 @@ class AddingFaceDialog(QDialog):
 
         self.people_name_combo_box = QComboBox()
 
-        for name in get_all_people_names():
+        for name in get_all_people_names_unsafe():
             self.people_name_combo_box.addItem(name)
 
         button_box = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)

@@ -15,6 +15,10 @@ from GUI.ListWidget import ListWidget
 from GUI.VideoPlayer import VideoPlayer
 from GUI.Settings import SettingsDialog
 from GUI.DbAddDialog import AddingPeopleDialog, AddingFaceDialog
+from GUI.DBRemoveDialog import RemoveFaceDialog, RemovePeopleDialog
+
+# Remove, bad practise
+from database.database import get_all_people_names, get_all_people_names_unsafe
 
 INPATH = 'input'
 OUTPATH = 'out'
@@ -96,17 +100,18 @@ class MainWindow(QMainWindow):
         self.cross_button.setDisabled(True)
 
         self.add_person_to_db = icon_action_mapper(
-             ICON_IMAGE_PATH + "tick_icon.png", "new", self._db_add_person, "Add person to db")
+             ICON_IMAGE_PATH + "db_add.png", "new", self._db_add_person, "Add person to db")
 
         self.add_face_to_db = icon_action_mapper(
-            ICON_IMAGE_PATH + "tick_icon.png", "new", self._db_add_face_image, "Add identifying face to db")
+            ICON_IMAGE_PATH + "image_add.png", "new", self._db_add_face_image, "Add identifying face to db")
+ 
+        self.remove_people_from_db = icon_action_mapper(
+            ICON_IMAGE_PATH + "db_remove.png", "new", self._db_remove_people, "Remove person from db")
 
         self.remove_image_from_db = icon_action_mapper(
-            ICON_IMAGE_PATH + "tick_icon.png", "new", self._db_remove_face_image, "Remove face image from db")
+            ICON_IMAGE_PATH + "image_remove.png", "new", self._db_remove_face_image, "Remove face image from db")
 
-        self.remove_people_from_db = icon_action_mapper(
-            ICON_IMAGE_PATH + "tick_icon.png", "new", self._db_remove_people, "Remove person from db")
-
+       
             
 
         self.toolbar.addAction(self.import_images_button)
@@ -120,10 +125,11 @@ class MainWindow(QMainWindow):
 
         self.toolbar.addAction(self.add_person_to_db)
         self.toolbar.addAction(self.add_face_to_db)
-        self.toolbar.addAction(self.remove_image_from_db)
+        self.toolbar.addSeparator()
+        
         self.toolbar.addAction(self.remove_people_from_db)
-
-
+        self.toolbar.addAction(self.remove_image_from_db)
+        
         self.controller.get_logger_gui().info("Setup Tool Bar")
 
     def __setup_layout(self):
@@ -239,16 +245,33 @@ class MainWindow(QMainWindow):
         del add_people_page
 
     def _db_add_face_image(self):
-        add_face_page = AddingFaceDialog(self.controller)
-        add_face_page.open()
-        add_face_page.exec()
-        del add_face_page
+        if self._does_db_contain_people():
+            add_face_page = AddingFaceDialog(self.controller)
+            add_face_page.open()
+            add_face_page.exec()
+            del add_face_page
 
     def _db_remove_people(self):
-        pass
+        if self._does_db_contain_people():
+            remove_people_page = RemovePeopleDialog(self.controller)
+            remove_people_page.open()
+            remove_people_page.exec()
+            del remove_people_page
 
     def _db_remove_face_image(self):
-        pass
+        if self._does_db_contain_people():
+            remove_face_page = RemoveFaceDialog(self.controller)
+            remove_face_page.open()
+            remove_face_page.exec()
+            del remove_face_page
+        
+    def _does_db_contain_people(self):
+        if len(get_all_people_names_unsafe()) == 0:
+            reset_prompt = QMessageBox(QMessageBox.Information, "Warning", "Please add a person first.")
+            reset_prompt.exec()
+            return False
+        else:
+            return True
 
     def is_webcam_activated(self):
         return self.is_webcam_active
