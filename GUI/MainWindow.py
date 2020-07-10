@@ -14,6 +14,11 @@ from GUI.GraphWidget import GraphWidget
 from GUI.ListWidget import ListWidget
 from GUI.VideoPlayer import VideoPlayer
 from GUI.Settings import SettingsDialog
+from GUI.DbAddDialog import AddingPeopleDialog, AddingFaceDialog
+from GUI.DBRemoveDialog import RemoveFaceDialog, RemovePeopleDialog
+
+# Remove, bad practise
+from database.database import get_all_people_names, get_all_people_names_unsafe
 
 INPATH = 'input'
 OUTPATH = 'out'
@@ -94,6 +99,21 @@ class MainWindow(QMainWindow):
             ICON_IMAGE_PATH + "cross_icon.png", "new", self.__cross_func, "Cancel current event")
         self.cross_button.setDisabled(True)
 
+        self.add_person_to_db = icon_action_mapper(
+             ICON_IMAGE_PATH + "db_add.png", "new", self._db_add_person, "Add person to db")
+
+        self.add_face_to_db = icon_action_mapper(
+            ICON_IMAGE_PATH + "image_add.png", "new", self._db_add_face_image, "Add identifying face to db")
+ 
+        self.remove_people_from_db = icon_action_mapper(
+            ICON_IMAGE_PATH + "db_remove.png", "new", self._db_remove_people, "Remove person from db")
+
+        self.remove_image_from_db = icon_action_mapper(
+            ICON_IMAGE_PATH + "image_remove.png", "new", self._db_remove_face_image, "Remove face image from db")
+
+       
+            
+
         self.toolbar.addAction(self.import_images_button)
         self.toolbar.addAction(self.import_videos_button)
         self.toolbar.addAction(self.webcam_button)
@@ -101,6 +121,15 @@ class MainWindow(QMainWindow):
         self.toolbar.addSeparator()
         # self.toolbar.addAction(self.tick_button)
         self.toolbar.addAction(self.cross_button)
+        self.toolbar.addSeparator()
+
+        self.toolbar.addAction(self.add_person_to_db)
+        self.toolbar.addAction(self.add_face_to_db)
+        self.toolbar.addSeparator()
+        
+        self.toolbar.addAction(self.remove_people_from_db)
+        self.toolbar.addAction(self.remove_image_from_db)
+        
         self.controller.get_logger_gui().info("Setup Tool Bar")
 
     def __setup_layout(self):
@@ -208,6 +237,41 @@ class MainWindow(QMainWindow):
             self.controller.empty_all_queues()
             self.cross_button.setDisabled(False)
             self.is_processing_video = False
+
+    def _db_add_person(self):
+        add_people_page = AddingPeopleDialog(self.controller)
+        add_people_page.open()
+        add_people_page.exec()
+        del add_people_page
+
+    def _db_add_face_image(self):
+        if self._does_db_contain_people():
+            add_face_page = AddingFaceDialog(self.controller)
+            add_face_page.open()
+            add_face_page.exec()
+            del add_face_page
+
+    def _db_remove_people(self):
+        if self._does_db_contain_people():
+            remove_people_page = RemovePeopleDialog(self.controller)
+            remove_people_page.open()
+            remove_people_page.exec()
+            del remove_people_page
+
+    def _db_remove_face_image(self):
+        if self._does_db_contain_people():
+            remove_face_page = RemoveFaceDialog(self.controller)
+            remove_face_page.open()
+            remove_face_page.exec()
+            del remove_face_page
+        
+    def _does_db_contain_people(self):
+        if len(get_all_people_names_unsafe()) == 0:
+            reset_prompt = QMessageBox(QMessageBox.Information, "Warning", "Please add a person first.")
+            reset_prompt.exec()
+            return False
+        else:
+            return True
 
     def is_webcam_activated(self):
         return self.is_webcam_active

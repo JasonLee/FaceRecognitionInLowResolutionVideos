@@ -51,7 +51,7 @@ def init_models():
     controller.get_logger_system().info("Setup Hardware")
 
     srganModel = superResolutionModel(hardware)
-    recogModel = recognitionModel("./images", hardware)
+    recogModel = recognitionModel(hardware)
 
     controller.get_logger_system().info("Setup SR and FR")
 
