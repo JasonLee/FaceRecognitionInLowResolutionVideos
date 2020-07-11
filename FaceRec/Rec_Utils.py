@@ -6,6 +6,7 @@ from FaceRec.model import *
 from torchvision import transforms
 from skimage import transform
 import random
+
 warnings.filterwarnings("ignore")
 
 
@@ -16,11 +17,12 @@ class recognitionModel(object):
         database (str): path of database root directory
         hardware (str): initial hardware to put the network in.
     """
+
     def __init__(self, hardware):
         self.__database = Database()
         self.__hardware = hardware
         self.__model = FaceNetModel()
-        self.__model.load_state_dict(torch.load("./FaceRec/FaceRecModel.pth",map_location=hardware))
+        self.__model.load_state_dict(torch.load("./FaceRec/FaceRecModel.pth", map_location=hardware))
         self.__model.eval()
         self.__model.to(hardware)
         self.__buildBaseLine()
@@ -30,23 +32,27 @@ class recognitionModel(object):
         self.__database = Database()
         self.__buildBaseLine()
 
+    def update_base_line(self):
+        # Rebuild what images model can recognise from
+        self.__buildBaseLine()
+
     def __buildBaseLine(self):
-        self.__composed = transforms.Compose([Rescale([224,224]), transforms.ToTensor()])
+        self.__composed = transforms.Compose([Rescale([224, 224]), transforms.ToTensor()])
         self.__baseline = {}
 
-        #Build the baseline for recognition system
+        # Build the baseline for recognition system
         names = self.__database.getNames()
         for name in names:
             images = self.__database.getImages(name)
             count = 0
             result = 0
             for image in images:
-                count+=1
-                image = self.__composed(image)[None,:,:,:]
+                count += 1
+                image = self.__composed(image)[None, :, :, :]
                 result += self.__model(torch.autograd.Variable(image)).data
-            self.__baseline[name] = result/count
+            self.__baseline[name] = result / count
 
-        self.__composed = torch.nn.Upsample([224,224])
+        self.__composed = torch.nn.Upsample([224, 224])
 
     def recognize(self, face):
         """Recognize a face using this model
@@ -65,16 +71,16 @@ class recognitionModel(object):
         distance = 100
         for i in self.__baseline:
             currDis = (output - self.__baseline[i]).pow(2).sum(1)
-            if(currDis < distance):
+            if (currDis < distance):
                 distance = currDis
                 label = i
         distance = float(distance)
-        if(distance >= 12):
+        if (distance >= 12):
             confidence = 0
-        elif(distance <= 1):
+        elif (distance <= 1):
             confidence = 100
         else:
-            confidence = (12 - distance)/11*100
+            confidence = (12 - distance) / 11 * 100
         return int(confidence), label
 
     def set_hardware(self, hardware):
@@ -92,6 +98,8 @@ class recognitionModel(object):
             else:
                 newBaseline[i] = self.__baseline[i].type('torch.cuda.FloatTensor')
         self.__baseline = newBaseline
+
+
 class Rescale(object):
     """Callable class, used to rescale a 2D list/image.
     
@@ -101,6 +109,7 @@ class Rescale(object):
     Attributes:
         output_size: size of output list/image.
     """
+
     def __init__(self, output_size):
         assert isinstance(output_size, list)
         self.output_size = output_size

@@ -50,11 +50,11 @@ class facialDetectionManager:
 
             if testForGAN(face_data) and self.controller.get_settings().value("Toggle SR", 1, int) == 1:
                 cropped_face_data.set_data(tensor.unsqueeze(0))
-                self.memory.ganQueue.push(cropped_face_data)
+                self.memory.ganQueue.put(cropped_face_data)
                 self.memory.ganQueueCount.release()
             else:
                 cropped_face_data.set_data(tensor.unsqueeze(0))
-                self.memory.recogQueue.push(cropped_face_data)
+                self.memory.recogQueue.put(cropped_face_data)
                 self.memory.recogQueueCount.release()
 
     def locateFaces(self, time_of_frame, input_frame):

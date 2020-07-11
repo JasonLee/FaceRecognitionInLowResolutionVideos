@@ -12,6 +12,7 @@ from torchvision.transforms import ToTensor
 MINIMUM_BICUBIC_RES = 50
 MINIMUM_GAN_RES = 100
 
+
 class Face:
     """This class defines face data structure used to store recognized faces.
 
@@ -25,10 +26,12 @@ class Face:
         faceName (str): Label of the image, identity's name or 'Unknown'.
         confidence (int): Confidence score for recognized face.
     """
+
     def __init__(self, facePath, faceName, confidence):
         self.facePath = facePath
         self.faceName = faceName
         self.confidence = confidence
+
 
 def get_resolution(cv2_image):
     """Get height and width of image.
@@ -42,6 +45,7 @@ def get_resolution(cv2_image):
     height, width, _ = cv2_image.shape
     return height, width
 
+
 def cv2_to_tensor(cv2_image):
     """Convert a cv2 image to tensor.
     
@@ -51,13 +55,14 @@ def cv2_to_tensor(cv2_image):
     Returns:
         tensor: converted image.
     """
-    rgb_im = cv2.cvtColor(cv2_image,cv2.COLOR_BGR2RGB)
+    rgb_im = cv2.cvtColor(cv2_image, cv2.COLOR_BGR2RGB)
     pil_im = Image.fromarray(rgb_im)
 
     tensor = Variable(ToTensor()(pil_im))
     return tensor
 
-def testForGAN(cv2_image):
+
+def test_for_gan(cv2_image):
     """ Test if image resolution is smaller than threshold for super resolution.
 
     Args:
@@ -67,6 +72,6 @@ def testForGAN(cv2_image):
         bool: if super resolution is needed.
     """
     res = get_resolution(cv2_image)
-    if (res[0] < MINIMUM_GAN_RES or res[1] < MINIMUM_GAN_RES):
+    if res[0] < MINIMUM_GAN_RES or res[1] < MINIMUM_GAN_RES:
         return True
     return False

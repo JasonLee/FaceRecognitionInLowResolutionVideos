@@ -1,5 +1,8 @@
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QFormLayout, QLineEdit, QMessageBox, QComboBox, QFileDialog, QLabel, QPushButton
-from database.database import get_all_people_names, insert_people, insert_face_file, get_all_people_names_unsafe
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QFormLayout, QLineEdit, QMessageBox, QComboBox, QFileDialog, \
+    QLabel, QPushButton
+
+from database.database import insert_face_file, get_all_people_names_unsafe
+
 
 class AddingPeopleDialog(QDialog):
     def __init__(self, controller):
@@ -19,7 +22,6 @@ class AddingPeopleDialog(QDialog):
         self.setLayout(main_layout)
         self.setWindowTitle("Add Person to Database")
 
-
     def select_accept(self):
         if self.line.text() in get_all_people_names_unsafe():
             reset_prompt = QMessageBox(QMessageBox.Information, "Error", "Person already exists in DB.")
@@ -30,6 +32,7 @@ class AddingPeopleDialog(QDialog):
 
     def select_reject(self):
         self.reject()
+
 
 class AddingFaceDialog(QDialog):
     def __init__(self, controller):
@@ -50,7 +53,7 @@ class AddingFaceDialog(QDialog):
         button_box.rejected.connect(self.select_reject)
 
         main_layout = QFormLayout()
-        main_layout.addRow(QLabel("Person: "),self.people_name_combo_box)
+        main_layout.addRow(QLabel("Person: "), self.people_name_combo_box)
         main_layout.addRow(QLabel("File to Add: "), self._file_upload)
         main_layout.addRow(self.file_label)
 
@@ -59,15 +62,16 @@ class AddingFaceDialog(QDialog):
         self.setLayout(main_layout)
         self.setWindowTitle("Add Face to Database")
 
-
     def select_accept(self):
-        if self.file_label.text() ==  "":
+        # If file path to face is empty
+        if self.file_label.text() == "":
             reset_prompt = QMessageBox(QMessageBox.Information, "Warning", "No file was added")
             reset_prompt.exec()
             self.reject()
             return
 
         insert_face_file(self.people_name_combo_box.currentText(), self.file_label.text())
+        self.controller.update_rec_model()
         self.accept()
 
     def select_reject(self):
@@ -75,7 +79,7 @@ class AddingFaceDialog(QDialog):
 
     def open_file(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Open File (*.jpg) (*.png)", "C:", "Images(*.jpg *.png)")
-        
+
         if file_path.endswith('.png') or file_path.endswith('.jpg'):
             self.file_label.setText(file_path)
         else:
