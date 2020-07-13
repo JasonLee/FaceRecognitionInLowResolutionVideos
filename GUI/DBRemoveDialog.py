@@ -1,7 +1,9 @@
-from PyQt5.QtWidgets import QWidget, QToolButton, QDialog, QDialogButtonBox, QFormLayout, QLineEdit, QMessageBox, QComboBox, QFileDialog, QLabel, QPushButton, QHBoxLayout
-from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt
-from database.database import get_all_people_names, delete_person, delete_face_image, get_all_people_names_unsafe, get_people_image
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QWidget, QToolButton, QDialog, QDialogButtonBox, QFormLayout, QComboBox, QLabel, QHBoxLayout
+
+from database.database import delete_person, delete_face_image, get_all_people_names_unsafe, get_people_image
+
 
 class RemovePeopleDialog(QDialog):
     def __init__(self, controller):
@@ -26,10 +28,12 @@ class RemovePeopleDialog(QDialog):
 
     def select_accept(self):
         delete_person(self.people_name_combo_box.currentText())
+        self.controller.update_rec_model()
         self.accept()
 
     def select_reject(self):
         self.reject()
+
 
 class RemoveFaceDialog(QDialog):
     def __init__(self, controller):
@@ -51,7 +55,7 @@ class RemoveFaceDialog(QDialog):
 
         for name in get_all_people_names_unsafe():
             self.people_name_combo_box.addItem(name)
-        
+
         self.load_image()
 
         self.button_container = QWidget()
@@ -80,6 +84,7 @@ class RemoveFaceDialog(QDialog):
 
     def select_accept(self):
         delete_face_image(self.face_array[self.face_array_index])
+        self.controller.update_rec_model()
         self.accept()
 
     def select_reject(self):
@@ -88,10 +93,10 @@ class RemoveFaceDialog(QDialog):
     def left_arrow(self):
         if self.face_array_index == 0:
             return
-        
+
         self.face_array_index -= 1
         self.load_image()
-        
+
     def right_arrow(self):
         if self.face_array_index >= len(self.face_array) - 1:
             return
@@ -115,6 +120,3 @@ class RemoveFaceDialog(QDialog):
 
         self.face_pixmap.loadFromData(self.face_array[self.face_array_index])
         self.face_label.setPixmap(self.face_pixmap)
-
-        
-        

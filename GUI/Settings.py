@@ -83,20 +83,19 @@ class SettingsDialog(QDialog):
         return self._toggle_save_image
 
     def _webcam_fps(self):
-            # Could do a slider
-            self._webcam_fps_combo_box = QComboBox()
-            self._webcam_fps_combo_box.addItem("1")
-            self._webcam_fps_combo_box.addItem("15")
-            self._webcam_fps_combo_box.addItem("30")
-            self._webcam_fps_combo_box.addItem("60")
+        # Could do a slider
+        self._webcam_fps_combo_box = QComboBox()
+        self._webcam_fps_combo_box.addItem("1")
+        self._webcam_fps_combo_box.addItem("15")
+        self._webcam_fps_combo_box.addItem("30")
+        self._webcam_fps_combo_box.addItem("60")
 
-            # Pull from settings
-            setting_index = self.settings.value("Webcam FPS", "15", str)
-            text_index = self._webcam_fps_combo_box.findText(setting_index)
-            self._webcam_fps_combo_box.setCurrentIndex(text_index)
-            return self._webcam_fps_combo_box
+        # Pull from settings
+        setting_index = self.settings.value("Webcam FPS", "15", str)
+        text_index = self._webcam_fps_combo_box.findText(setting_index)
+        self._webcam_fps_combo_box.setCurrentIndex(text_index)
+        return self._webcam_fps_combo_box
 
-    
     def _show_confidence(self):
         # Could do a slider
         self._confidence_combo_box = QComboBox()
@@ -178,10 +177,3 @@ class SettingsDialog(QDialog):
 
         self.controller.get_logger_gui().info("Settings Rejected")
         self.reject()
-
-
-
-
-
-
-

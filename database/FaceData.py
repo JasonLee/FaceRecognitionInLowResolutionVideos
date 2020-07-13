@@ -1,17 +1,15 @@
 class FaceData:
-    def __init__(self, data, time = None):
-        self.__data = data
+    """Class to hold image and time it was processed for to pass throughout models"""
+    def __init__(self, data, time=None):
+        self._data = data
         if time is not None:
-            self.__time = time
-
+            self._time = time
 
     def get_data(self):
-        return self.__data
+        return self._data
 
     def set_data(self, data):
-        self.__data = data
+        self._data = data
 
     def get_time(self):
-        return self.__time
-
-
+        return self._time
