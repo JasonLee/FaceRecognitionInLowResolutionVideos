@@ -38,6 +38,7 @@ class SettingsDialog(QDialog):
         face_dec_layout = QFormLayout()
         # TODO: Figure out how to detect valid sources
         face_dec_layout.addRow(QLabel("Webcam Source: "), QLabel("0"))
+        face_dec_layout.addRow(QLabel("Webcam FPS (Limited by Hardware): "), self._webcam_fps())
         face_dec_layout.addRow(QLabel("Confidence: "), self._show_confidence())
         face_dec_layout.addRow(QLabel("Display Video Capture FPS: "), self._show_fps())
         face_dec_group_box.setLayout(face_dec_layout)
@@ -80,6 +81,20 @@ class SettingsDialog(QDialog):
         setting_toggle = self.settings.value("Save Image Toggle", 0, int)
         self._toggle_save_image.setCheckState(setting_toggle)
         return self._toggle_save_image
+
+    def _webcam_fps(self):
+        # Could do a slider
+        self._webcam_fps_combo_box = QComboBox()
+        self._webcam_fps_combo_box.addItem("1")
+        self._webcam_fps_combo_box.addItem("15")
+        self._webcam_fps_combo_box.addItem("30")
+        self._webcam_fps_combo_box.addItem("60")
+
+        # Pull from settings
+        setting_index = self.settings.value("Webcam FPS", "15", str)
+        text_index = self._webcam_fps_combo_box.findText(setting_index)
+        self._webcam_fps_combo_box.setCurrentIndex(text_index)
+        return self._webcam_fps_combo_box
 
     def _show_confidence(self):
         # Could do a slider
@@ -133,6 +148,7 @@ class SettingsDialog(QDialog):
         # Saves to settings
         self.settings.setValue("Hardware", self._hardware_combo_box.currentIndex())
         self.settings.setValue("Save Image Toggle", self._toggle_save_image.checkState())
+        self.settings.setValue("Webcam FPS", self._webcam_fps_combo_box.currentText())
         self.settings.setValue("Face Detection Confidence", self._confidence_combo_box.currentText())
         self.settings.setValue("Video Capture FPS", self._fps_combo_box.currentText())
         self.settings.setValue("Toggle SR", self._toggle_sr_check.checkState())
@@ -144,6 +160,9 @@ class SettingsDialog(QDialog):
         # Resets based on current settings
         self._hardware_combo_box.setCurrentIndex(self.settings.value("Hardware", 0, int))
         self._toggle_save_image.setCheckState(self.settings.value("Save Image Toggle", 0, int))
+
+        setting_value = self.settings.value("Webcam FPS", "15", str)
+        self._webcam_fps_combo_box.setCurrentIndex(self._webcam_fps_combo_box.findText(setting_value))
 
         setting_value = self.settings.value("Face Detection Confidence", "0.4", str)
         self._confidence_combo_box.setCurrentIndex(self._confidence_combo_box.findText(setting_value))
@@ -158,10 +177,3 @@ class SettingsDialog(QDialog):
 
         self.controller.get_logger_gui().info("Settings Rejected")
         self.reject()
-
-
-
-
-
-
-

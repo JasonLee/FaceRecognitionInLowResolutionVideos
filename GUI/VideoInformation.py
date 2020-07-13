@@ -46,6 +46,7 @@ class VideoInformationDialog(QDialog):
         return general_group_box
 
     def setup_info(self):
+        """Setup info button to contain video file information"""
         cv2_video = self.controller.get_current_video_cv2()
         cv2_video.set(cv2.CAP_PROP_POS_AVI_RATIO, 1)
 

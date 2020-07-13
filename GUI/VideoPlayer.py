@@ -18,7 +18,7 @@ class VideoPlayer(QWidget):
 
         self.video_widget = QVideoWidget(self)
 
-        self.__set_buttons()
+        self._set_buttons()
 
         self.video_info_dialog = VideoInformationDialog(self.controller, self)
         self.video_info_dialog.hide()
@@ -30,7 +30,7 @@ class VideoPlayer(QWidget):
         self.media_player.error.connect(self.handle_error)
         self.status_bar.showMessage("Ready")
 
-    def __set_buttons(self):
+    def _set_buttons(self):
         btn_size = QSize(16, 16)
 
         self.play_button = QPushButton()
@@ -84,6 +84,7 @@ class VideoPlayer(QWidget):
     def set_video(self, file_path):
         """ Sets Video based on Video path. """
         self.video_path = file_path
+        self.process_button.setDisabled(False)
         print(file_path)
         self.controller.get_logger_gui().info("Pull in new video path: " + self.video_path)
         self.media_player.setMedia(QMediaContent(QUrl.fromLocalFile(file_path)))
@@ -97,6 +98,7 @@ class VideoPlayer(QWidget):
         self.controller.set_current_video_cv2(None)
 
     def set_video_label(self, time):
+        """Time in video playing"""
         processed_time = dt.timedelta(milliseconds=time)
         # Toss milliseconds, internally milliseconds are converted to microseconds
         new_time = str(processed_time - dt.timedelta(microseconds=processed_time.microseconds))
@@ -113,6 +115,7 @@ class VideoPlayer(QWidget):
         self.parent_container.video_display_widget.setCurrentIndex(1)
         self.controller.image_selected()
         self.media_player.pause()
+        self.process_button.setDisabled(True)
 
     def play(self):
         if self.media_player.state() == QMediaPlayer.PlayingState:

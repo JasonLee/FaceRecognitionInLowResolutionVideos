@@ -6,6 +6,14 @@ This project is aimed to improve face recognition in low resolution videos throu
 This was originally my 2nd Year Group Project from https://github.com/pwz266266/VideoFacRec (imported from GitLab Private Repo)
 Project was revived and rewritten by myself. 
 
+![Sample Image](resources/sample.png)
+
+## Stack
++ Pytorch - Super Resolution & Face Recognition Models and Training
++ OpenCV - Face Detection
++ PYQT5 - User Interface
++ SQLite3 - Database
+
 ## Links
 + Original write-ups: [Google Drive Report](https://drive.google.com/drive/folders/1YhIltgKVwol4yVnlCcrE3m35y1TZ-UKy?usp=sharing)
 + Model files: [Google Drive Link](https://drive.google.com/drive/folders/1haN4myJ2z2_ffArshHIZu7kOlHye0lGE?usp=sharing)
@@ -17,10 +25,9 @@ Project was revived and rewritten by myself.
 + If you have a NVIDIA GPU you can install the CUDA toolkit [here](https://developer.nvidia.com/cuda-downloads)
 
 ## Running 
-+ Create a new folder called ````images```` in the root directory
 + Drag each model file from into their respective folder - [Google Drive Link](https://drive.google.com/drive/folders/1haN4myJ2z2_ffArshHIZu7kOlHye0lGE?usp=sharing)
 + Run ````python start.py```` in the anaconda prompt to start.
-+ Adding images - You can process an image and on the list click the modify button and add a name. Or you can manually make a new folder in ````images/```` with the name and add images.
++ Add people and face images by clicking the plus icons on the toolbar.
 
 ## Testing
 + Run tests with ````python -m unittest````

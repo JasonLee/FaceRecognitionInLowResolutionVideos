@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QListWidget, QList
 
 
 class ListWidget(QWidget):
+    # Signal for other threads to use to add to list
     add_list_requested = pyqtSignal(str, str, str)
 
     def __init__(self, controller):
@@ -14,15 +15,14 @@ class ListWidget(QWidget):
 
         self.setLayout(self.layout)
         self.add_list_requested.connect(self.add_live_tab)
-        self.__setup_tabs()
+        self._setup_tabs()
 
-    def __setup_tabs(self):
+    def _setup_tabs(self):
         self.tabs = QTabWidget()
         self.tab1_live = QListWidget()
         self.tab2_total = QListWidget()
 
         self.tabs.addTab(self.tab1_live, "Live Results")
-        # self.tabs.addTab(self.tab2_total, "Organised Results")
 
         self.layout.addWidget(self.tabs)
 
@@ -47,9 +47,9 @@ class ListWidget(QWidget):
             self.confidence = confidence
             self.name = name
             self.image_path = image
-            self.__setup_block()
+            self._setup_block()
 
-        def __setup_block(self):
+        def _setup_block(self):
             self.layout = QHBoxLayout()
             self.image_frame = QLabel(self)
 
@@ -58,12 +58,12 @@ class ListWidget(QWidget):
             self.image_frame.setPixmap(self.image_pixmap.scaled(self.WIDTH, self.HEIGHT, Qt.KeepAspectRatio))
             self.layout.addWidget(self.image_frame)
 
-            self.__setup_data()
-            self.__setup_buttons()
+            self._setup_data()
+            self._setup_buttons()
 
             self.setLayout(self.layout)
 
-        def __setup_data(self):
+        def _setup_data(self):
             self.data_section = QWidget()
             self.data_section.setStyleSheet("border:1px solid rgb(0, 0, 0);")
             self.data_layout = QVBoxLayout()
@@ -79,27 +79,23 @@ class ListWidget(QWidget):
 
             self.layout.addWidget(self.data_section)
 
-        def __setup_buttons(self):
+        def _setup_buttons(self):
             self.button_section = QWidget()
             self.button_layout = QVBoxLayout()
             self.button_section.setLayout(self.button_layout)
 
-            # self.info_button = QPushButton(self.button_section)
-            # self.info_button.setText("INFO")
-
             self.modify_button = QPushButton(self.button_section)
             self.modify_button.setText("MODIFY")
-            self.modify_button.clicked.connect(self.__modify_label)
+            self.modify_button.clicked.connect(self._modify_label)
 
-            # self.button_layout.addWidget(self.info_button)
             self.button_layout.addWidget(self.modify_button)
 
             self.layout.addWidget(self.button_section)
 
-        def __modify_label(self):
+        def _modify_label(self):
+            """ Add new label of face to db"""
             new_name, ok_pressed = QInputDialog.getText(self, "New Face Label", "Name:", QLineEdit.Normal, self.name)
 
             if ok_pressed and new_name != self.name:
                 self.text_name.setText("Name: " + new_name)
                 self.controller.add_face_db(new_name, self.image_pixmap)
-
