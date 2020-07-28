@@ -13,6 +13,8 @@ def init_database(controller_obj):
     global controller
     controller = controller_obj
 
+    cursor.execute("PRAGMA foreign_keys = ON")
+
     cursor.execute('''CREATE TABLE IF NOT EXISTS people(
                 people_id INTEGER PRIMARY KEY, 
                 people_name TEXT UNIQUE)''')

@@ -1,3 +1,6 @@
+import os
+os.environ["PYTORCH_JIT"] = "0"
+
 import torch
 from torch import nn
 import math

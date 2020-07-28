@@ -16,3 +16,8 @@ venv
 .vscode
 *.log
 face.db
+
+
+# pyinstaller
+build/
+dist/
