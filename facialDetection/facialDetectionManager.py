@@ -46,6 +46,10 @@ class facialDetectionManager:
         for cropped_face_data in self.extractFaces(input_frame):
 
             face_data = cropped_face_data.get_data()
+
+            if not face_data.any():
+                return
+
             tensor = cv2_to_tensor(face_data)
 
             if testForGAN(face_data) and self.controller.get_settings().value("Toggle SR", 1, int) == 1:
@@ -122,6 +126,7 @@ class facialDetectionManager:
         height = int(cv2_video_obj.get(cv2.CAP_PROP_FRAME_HEIGHT))
         width = int(cv2_video_obj.get(cv2.CAP_PROP_FRAME_WIDTH))
         fps_new_video = self.controller.get_settings().value("Video Capture FPS", 0, int)
+        print(height,width,fps_new_video)
 
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         return cv2.VideoWriter(facialDetectionManager.OUT_DIR + '/' + file_name, fourcc, fps_new_video, (width, height))

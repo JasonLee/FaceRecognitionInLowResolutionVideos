@@ -7,7 +7,8 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QListWidget, QList
 class ListWidget(QWidget):
     # Signal for other threads to use to add to list
     add_list_requested = pyqtSignal(str, str, str)
-
+    LIST_MAX_LENGTH = 100
+    
     def __init__(self, controller):
         super(ListWidget, self).__init__()
         self.controller = controller
@@ -33,6 +34,15 @@ class ListWidget(QWidget):
         self.tab1_live.setItemWidget(list_item, new_data)
         list_item.setSizeHint(new_data.sizeHint())
         self.controller.get_logger_gui().info("Adding data to live tab")
+
+        self._remove_over_limit()
+    
+    def _remove_over_limit(self):
+        self.controller.get_logger_gui().info("Removing list items if over limit")
+
+        while self.tab1_live.count() > self.LIST_MAX_LENGTH:
+            self.tab1_live.takeItem(0)
+        
 
     def get_live_list_widget(self):
         return self.tab1_live

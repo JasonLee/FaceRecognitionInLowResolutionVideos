@@ -46,14 +46,17 @@ class directoryFDM(facialDetectionManager):
 
             success, image = cv2_video.read()
 
-            while success and self.controller.get_video_processing_flag() is True:
+            while cv2_video.isOpened() and success and self.controller.get_video_processing_flag() is True:
                 frame_count = cv2_video.get(cv2.CAP_PROP_POS_FRAMES)
                 if frame_count % frame_sample == 0:
                     time_of_frame = cv2_video.get(cv2.CAP_PROP_POS_MSEC)
                     new_frame = self.locateFaces(time_of_frame, image)
+
                     video_writer.write(new_frame)
                     self.processFrame(testForGAN, cv2_to_tensor, image)
+
                 success, image = cv2_video.read()
+
 
             cv2_video.release()
             video_writer.release()
@@ -63,5 +66,6 @@ class directoryFDM(facialDetectionManager):
             self.controller.set_video_processing_flag(False)
 
         else:
-            self.controller.get_logger_system().info("DET: Error, unrecognised input file")
+            self.controller.get_logger_system().info("DET: Error, un-recognised input file")
         self.controller.get_logger_system().info("Processing video - Done")
+# 
