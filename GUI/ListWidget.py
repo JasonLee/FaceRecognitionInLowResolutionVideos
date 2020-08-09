@@ -1,5 +1,5 @@
 from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QFont
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QListWidget, QListWidgetItem, QHBoxLayout, QLabel, \
     QPushButton, QInputDialog, QLineEdit
 
@@ -18,23 +18,29 @@ class ListWidget(QWidget):
         self.add_list_requested.connect(self.add_live_tab)
         self._setup_tabs()
 
+        self._people_dict = {}
+        self._people_dict_pos = 0
+
     def _setup_tabs(self):
         self.tabs = QTabWidget()
         self.tab1_live = QListWidget()
         self.tab2_total = QListWidget()
 
         self.tabs.addTab(self.tab1_live, "Live Results")
+        self.tabs.addTab(self.tab2_total, "People Identified")
 
         self.layout.addWidget(self.tabs)
 
     def add_live_tab(self, name, confidence, image):
         new_data = self.LiveResultBlock(name, confidence, image, self.controller)
         list_item = QListWidgetItem()
+        
         self.tab1_live.addItem(list_item)
         self.tab1_live.setItemWidget(list_item, new_data)
         list_item.setSizeHint(new_data.sizeHint())
         self.controller.get_logger_gui().info("Adding data to live tab")
-
+        
+        self._add_to_total(name, image)
         self._remove_over_limit()
     
     def _remove_over_limit(self):
@@ -42,6 +48,26 @@ class ListWidget(QWidget):
 
         while self.tab1_live.count() > self.LIST_MAX_LENGTH:
             self.tab1_live.takeItem(0)
+
+    def _add_to_total(self, name, image):
+        if name in self._people_dict:
+            index = self._people_dict[name]
+            person_result_block = self.tab2_total.item(index)
+
+            self.tab2_total.itemWidget(person_result_block).set_image(image)
+            return
+
+        new_data = self.TotalResultBlock(name, image, self.controller)
+        list_item = QListWidgetItem()
+        
+        self.tab2_total.addItem(list_item)
+        self.tab2_total.setItemWidget(list_item, new_data)
+
+        self._people_dict[name] = self._people_dict_pos
+        self._people_dict_pos = self._people_dict_pos + 1
+
+        list_item.setSizeHint(new_data.sizeHint())
+
         
 
     def get_live_list_widget(self):
@@ -109,3 +135,52 @@ class ListWidget(QWidget):
             if ok_pressed and new_name != self.name:
                 self.text_name.setText("Name: " + new_name)
                 self.controller.add_face_db(new_name, self.image_pixmap)
+
+    class TotalResultBlock(QWidget):
+        WIDTH = 400
+        HEIGHT = 120
+
+        def __init__(self, name, image, controller):
+            super(ListWidget.TotalResultBlock, self).__init__()
+            self.controller = controller
+            self.name = name
+            self.image_path = image
+            self._setup_block()
+
+        def _setup_block(self):
+            self.layout = QHBoxLayout()
+            self.image_frame = QLabel(self)
+
+            image_pixmap = QPixmap(self.image_path)
+
+            self.image_frame.setPixmap(image_pixmap.scaled(self.WIDTH, self.HEIGHT, Qt.KeepAspectRatio))
+            self.layout.addWidget(self.image_frame)
+
+            self._setup_data()
+
+            self.setLayout(self.layout)
+
+        def _setup_data(self):
+            self.data_section = QWidget()
+            self.data_section.setStyleSheet("border:1px solid rgb(0, 0, 0);")
+            self.data_layout = QVBoxLayout()
+            self.data_section.setLayout(self.data_layout)
+
+            self.text_name = QLabel()
+            self.text_name.setText("Name: " + self.name)
+            
+            newfont = QFont("Roboto Mono", 16, QFont.Bold) 
+            self.text_name.setFont(newfont)
+            # text_confidence = QLabel()
+            # text_confidence.setText("Confidence: " + self.confidence)
+
+            self.data_layout.addWidget(self.text_name)
+            # self.data_layout.addWidget(text_confidence)
+
+            self.layout.addWidget(self.data_section)
+
+        def set_image(self, image_path):
+            image_pixmap = QPixmap(image_path)
+
+            self.image_frame.setPixmap(image_pixmap.scaled(self.WIDTH, self.HEIGHT, Qt.KeepAspectRatio))
+            
