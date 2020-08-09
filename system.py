@@ -1,4 +1,9 @@
+import os
+
+# Fixes issue with pyinstaller thinking a pytorch library doesnt exist
+os.environ["PYTORCH_JIT"] = "0"
 import torchvision
+
 import threading
 
 from database.SharedData import SharedData

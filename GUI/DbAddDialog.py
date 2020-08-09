@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QFormLayout, QLineEdit, QMessageBox, QComboBox, QFileDialog, \
     QLabel, QPushButton
 
-from database.database import insert_face_file, get_all_people_names_unsafe
+from database.database import insert_face_file, get_all_people_names_unsafe, insert_people
 
 
 class AddingPeopleDialog(QDialog):
@@ -27,6 +27,8 @@ class AddingPeopleDialog(QDialog):
             reset_prompt = QMessageBox(QMessageBox.Information, "Error", "Person already exists in DB.")
             reset_prompt.exec()
             return
+
+        insert_people(self.line.text())
 
         self.accept()
 

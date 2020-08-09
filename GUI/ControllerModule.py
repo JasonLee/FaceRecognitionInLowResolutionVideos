@@ -90,9 +90,10 @@ class Controller:
         add_corrected_face(name, face_pixmap)
 
     def finished_video_processing(self, path):
-        self._logger_controller.info("Set processed video to video player")
+        self._logger_controller.info("Finished video processing")
         self._view.video_display_widget.setCurrentIndex(0)
         self._view.image_video_view.setCurrentIndex(1)
+        self._logger_controller.info("Setting processed video to video player")
         self._view.get_video_player().set_video(path)
         self._view.get_video_player().process_button.setDisabled(True)
 
