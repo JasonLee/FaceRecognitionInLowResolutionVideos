@@ -58,7 +58,7 @@ class ListWidget(QWidget):
     def _remove_over_limit(self):
         self.controller.get_logger_gui().info("Removing list items if over limit")
 
-        while self.tab1_live.count() > self.LIST_MAX_LENGTH:
+        while self.tab1_live.count() > self.controller.get_settings().value("Max Faces", 100, int):
             self.tab1_live.takeItem(0)
 
     def _add_to_total(self, name, image_PIL):

@@ -22,7 +22,6 @@ class SettingsTest(unittest.TestCase):
 
     def test_options_load(self):
         self.assertEqual(self.settings_page._hardware_combo_box.isEnabled(), True)
-        self.assertEqual(self.settings_page._toggle_save_image.isCheckable(), True)
         self.assertEqual(self.settings_page._confidence_combo_box.isEnabled(), True)
         self.assertEqual(self.settings_page._fps_combo_box.isEnabled(), True)
         self.assertEqual(self.settings_page._toggle_sr_check.isCheckable(), True)
@@ -37,7 +36,6 @@ class SettingsTest(unittest.TestCase):
 
     def test_accept(self):
         self.settings_page._hardware_combo_box.setCurrentIndex(1) # GPU
-        self.settings_page._toggle_save_image.setChecked(False)
         self.settings_page._confidence_combo_box.setCurrentIndex(0)
         self.settings_page._fps_combo_box.setCurrentIndex(0)
         self.settings_page._toggle_sr_check.setChecked(True)
@@ -53,7 +51,6 @@ class SettingsTest(unittest.TestCase):
 
     def test_reject(self):
         self.settings_page._hardware_combo_box.setCurrentIndex(1)  # GPU
-        self.settings_page._toggle_save_image.setChecked(False)
         self.settings_page._confidence_combo_box.setCurrentIndex(0)
         self.settings_page._fps_combo_box.setCurrentIndex(0)
         self.settings_page._toggle_sr_check.setChecked(True)
