@@ -2,7 +2,8 @@ import os
 
 # Fixes issue with pyinstaller thinking a pytorch library doesnt exist
 os.environ["PYTORCH_JIT"] = "0"
-import torchvision
+
+from torchvision import transforms
 
 import threading
 
@@ -177,10 +178,6 @@ def gan_manager(srgan_model):
 
                 image_data = face_data_to_process.get_data()
 
-                if controller.get_settings().value("Save Image Toggle", 0, int) == 2:
-                    torchvision.utils.save_image(image_data.clone(),
-                                                 "./out/" + "beforeSuperResolution" + str(i) + ".png")
-
                 tensor = srgan_model.super_resolution(image_data)
 
                 if BENCHMARK_TIME:
@@ -201,10 +198,7 @@ def gan_manager(srgan_model):
             normalised = (tensor - min_v) / range_v
         else:
             normalised = torch.zeros(tensor.size())
-
-        if controller.get_settings().value("Save Image Toggle", 0, int) == 2:
-            torchvision.utils.save_image(normalised.clone(), "./out/" + "AfterSuperResolution" + str(i) + ".png")
-
+            
         i += 1
         face_data_to_process.set_data(normalised)
         memory.recogQueue.put(face_data_to_process)
@@ -214,13 +208,14 @@ def gan_manager(srgan_model):
 def recog_manager(recogModel, controller):
     """Face recognition thread, will process all pictures in recognition queue in order."""
 
-    i = 0
     while True:
         memory.recogQueueCount.acquire()
         if memory.detDone.is_set() and memory.recogQueue.empty():
             if controller.get_settings().value("Toggle SR", 1, int) == 1 and not memory.ganDone.is_set():
                 pass
             controller.get_logger_system().info("REC: Done")
+
+            controller.get_view().get_list_widget().enable_all_modify_button()
             return
 
         face_data_to_process = memory.recogQueue.get()
@@ -251,11 +246,11 @@ def recog_manager(recogModel, controller):
                     label = "Unknown (" + label + " ?)"
                 else:
                     label = "Unknown"
-
-            torchvision.utils.save_image(image_data, "./out/" + str(i) + ".png")
+            
+            image = transforms.ToPILImage()(image_data.squeeze(0))
 
             # PYSIGNALS
-            controller.get_view().get_list_widget().add_list_requested.emit(label, confidence.__str__(),
-                                                                            "./out/" + str(i) + ".png")
+            controller.get_view().get_list_widget().add_list_requested.emit(label, confidence.__str__(), image)
             controller.add_data_graph(label, face_data_to_process.get_time())
-            i += 1
+
+                

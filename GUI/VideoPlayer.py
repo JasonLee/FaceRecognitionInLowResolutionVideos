@@ -85,7 +85,7 @@ class VideoPlayer(QWidget):
         """ Sets Video based on Video path. """
         self.video_path = file_path
         self.process_button.setDisabled(False)
-        print(file_path)
+        
         self.controller.get_logger_gui().info("Pull in new video path: " + self.video_path)
         self.media_player.setMedia(QMediaContent(QUrl.fromLocalFile(file_path)))
         self.status_bar.showMessage(file_path)

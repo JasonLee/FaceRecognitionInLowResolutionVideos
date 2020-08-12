@@ -15,7 +15,6 @@ class SettingsTest(unittest.TestCase):
 
         # Default Settings:
         self.settings_page.settings.setValue("Hardware", 0)
-        self.settings_page.settings.setValue("Save Image Toggle", 2)
         self.settings_page.settings.setValue("Face Detection Confidence", 0.4)
         self.settings_page.settings.setValue("Video Capture FPS", 1)
         self.settings_page.settings.setValue("Toggle SR",0)
@@ -31,7 +30,6 @@ class SettingsTest(unittest.TestCase):
 
     def test_values_in_ini(self):
         self.assertEqual(self.settings_page.settings.value("Hardware", -1, int), 0)
-        self.assertEqual(self.settings_page.settings.value("Save Image Toggle", -1, int), 2)
         self.assertEqual(self.settings_page.settings.value("Face Detection Confidence", -1.0, float), 0.4)
         self.assertEqual(self.settings_page.settings.value("Video Capture FPS", -1, int), 1)
         self.assertEqual(self.settings_page.settings.value("Toggle SR", -1, int), 0)
@@ -48,7 +46,6 @@ class SettingsTest(unittest.TestCase):
         self.settings_page.select_accept()
 
         self.assertEqual(self.settings_page.settings.value("Hardware", -1, int), 1)
-        self.assertEqual(self.settings_page.settings.value("Save Image Toggle", -1, int), 0)
         self.assertEqual(self.settings_page.settings.value("Face Detection Confidence", -1.0, float), 0.2)
         self.assertEqual(self.settings_page.settings.value("Video Capture FPS", -1, int), 1)
         self.assertEqual(self.settings_page.settings.value("Toggle SR", -1, int), 2)
@@ -65,7 +62,6 @@ class SettingsTest(unittest.TestCase):
         self.settings_page.select_reject()
 
         self.assertEqual(self.settings_page.settings.value("Hardware", -1, int), 0)
-        self.assertEqual(self.settings_page.settings.value("Save Image Toggle", -1, int), 2)
         self.assertEqual(self.settings_page.settings.value("Face Detection Confidence", -1.0, float), 0.4)
         self.assertEqual(self.settings_page.settings.value("Video Capture FPS", -1, int), 1)
         self.assertEqual(self.settings_page.settings.value("Toggle SR", -1, int), 0)

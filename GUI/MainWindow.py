@@ -1,7 +1,7 @@
 import os
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtGui import QIcon, QPixmap, QImage
 from PyQt5.QtWidgets import (QAction, QFileDialog, QHBoxLayout,
                              QLabel, QMainWindow, QMenuBar,
                              QSplitter, QWidget, QStackedWidget, QMessageBox)
@@ -267,19 +267,31 @@ class MainWindow(QMainWindow):
         # file_name doesn't actually do anything. Works by taking the image from /input
         self.controller.image_selected()
 
-    def set_image_frame(self, image_name):
+    def cv2_to_QImage(self, image_numpy_arr):
+        # Convert to QImage for GUI
+        height, width, channel = image_numpy_arr.shape
+        bytesPerLine = 3 * width
+
+        return QImage(image_numpy_arr.data, width, height, bytesPerLine, QImage.Format_RGB888).rgbSwapped()
+
+    def set_image_frame(self, image):
         w = self.image_frame_label.width()
         h = self.image_frame_label.height()
 
-        pixmap = QPixmap(image_name)
+        # Image is path when image is imported from dir
+        if isinstance(image, str):
+            pixmap = QPixmap(image)
+        else:
+            pixmap = QPixmap(self.cv2_to_QImage(image))
 
         self.image_frame_label.setPixmap(pixmap.scaled(w, h, Qt.KeepAspectRatio))
 
-    def set_video_processing_frame(self, image_name):
+    def set_video_processing_frame(self, image):
         w = self.video_processing_label.width()
         h = self.video_processing_label.height()
 
-        pixmap = QPixmap(image_name)
+        pixmap = QPixmap(self.cv2_to_QImage(image))
+
         self.video_processing_label.setPixmap(pixmap.scaled(w, h, Qt.KeepAspectRatio))
 
     def clear_image_frame(self):
@@ -305,6 +317,8 @@ class MainWindow(QMainWindow):
             os.unlink(file_path)
 
         self.get_list_widget().get_live_list_widget().clear()
+        self.get_list_widget().get_total_list_widget().clear()
+        self.get_list_widget().reset_total_list_dict()
 
         self.get_graph_widget().reset_figure()
 

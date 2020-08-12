@@ -27,7 +27,8 @@ class directoryFDM(facialDetectionManager):
         if file.endswith('.png') or file.endswith('.jpg'):
             self.controller.get_logger_system().info("Processing single image")
             cv2_image = cv2.imread(file)
-            self.locateFaces(0, cv2_image)
+            boxedFaces = self.locateFaces(0, cv2_image)
+            self.controller.set_image_view(boxedFaces)
             self.processFrame(testForGAN, cv2_to_tensor, cv2_image)
             self.controller.get_logger_system().info("Processing single image - Done")
 
@@ -36,8 +37,6 @@ class directoryFDM(facialDetectionManager):
             self.controller.set_video_processing_flag(True)
 
             cv2_video = cv2.VideoCapture(file)
-
-            video_writer = self.set_up_video_writer(cv2_video, "processed_video.mp4")
 
             frame_rate = cv2_video.get(cv2.CAP_PROP_FPS)
             seconds_per_frame = self.controller.get_settings().value("Video Capture FPS", 0, int)
@@ -48,22 +47,24 @@ class directoryFDM(facialDetectionManager):
 
             while cv2_video.isOpened() and success and self.controller.get_video_processing_flag() is True:
                 frame_count = cv2_video.get(cv2.CAP_PROP_POS_FRAMES)
-                if frame_count % frame_sample == 0:
-                    time_of_frame = cv2_video.get(cv2.CAP_PROP_POS_MSEC)
-                    new_frame = self.locateFaces(time_of_frame, image)
 
-                    video_writer.write(new_frame)
+                time_of_frame = cv2_video.get(cv2.CAP_PROP_POS_MSEC)
+                new_frame = self.locateFaces(time_of_frame, image)
+                self.controller.set_image_view(new_frame)
+
+                if frame_count % frame_sample == 0:
                     self.processFrame(testForGAN, cv2_to_tensor, image)
+
 
                 success, image = cv2_video.read()
 
+            self.controller.set_video_processing_flag(False)
 
             cv2_video.release()
-            video_writer.release()
             cv2.destroyAllWindows()
 
-            self.controller.finished_video_processing("out/processed_video.mp4")
-            self.controller.set_video_processing_flag(False)
+            self.controller.finished_video_processing(file)
+            
 
         else:
             self.controller.get_logger_system().info("DET: Error, un-recognised input file")

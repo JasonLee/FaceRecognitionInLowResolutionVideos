@@ -81,6 +81,7 @@ def insert_face_as_data(people_name, face_data):
         sqlite_insert_blob_query = """INSERT INTO face(people_id, image) VALUES (?, ?)"""
 
         people_id = get_people_id(people_name)
+        print(people_name, people_id)
 
         if people_id is None:
             controller.get_logger_system().error('Cannot find people in table with given name!')

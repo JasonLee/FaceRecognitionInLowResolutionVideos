@@ -26,7 +26,6 @@ class SettingsDialog(QDialog):
         general_group_box = QGroupBox("General")
         general_layout = QFormLayout()
         general_layout.addRow(QLabel("Preferred Hardware: "), self._show_hardware())
-        general_layout.addRow(QLabel("Save Images: "), self._save_images_toggle())
         general_group_box.setLayout(general_layout)
 
         return general_group_box
@@ -73,14 +72,6 @@ class SettingsDialog(QDialog):
         setting_index = self.settings.value("Hardware", 0, int)
         self._hardware_combo_box.setCurrentIndex(setting_index)
         return self._hardware_combo_box
-
-    def _save_images_toggle(self):
-        self._toggle_save_image = QCheckBox()
-
-        # Pull from settings
-        setting_toggle = self.settings.value("Save Image Toggle", 0, int)
-        self._toggle_save_image.setCheckState(setting_toggle)
-        return self._toggle_save_image
 
     def _webcam_fps(self):
         # Could do a slider
@@ -147,7 +138,6 @@ class SettingsDialog(QDialog):
     def select_accept(self):
         # Saves to settings
         self.settings.setValue("Hardware", self._hardware_combo_box.currentIndex())
-        self.settings.setValue("Save Image Toggle", self._toggle_save_image.checkState())
         self.settings.setValue("Webcam FPS", self._webcam_fps_combo_box.currentText())
         self.settings.setValue("Face Detection Confidence", self._confidence_combo_box.currentText())
         self.settings.setValue("Video Capture FPS", self._fps_combo_box.currentText())
@@ -159,7 +149,6 @@ class SettingsDialog(QDialog):
     def select_reject(self):
         # Resets based on current settings
         self._hardware_combo_box.setCurrentIndex(self.settings.value("Hardware", 0, int))
-        self._toggle_save_image.setCheckState(self.settings.value("Save Image Toggle", 0, int))
 
         setting_value = self.settings.value("Webcam FPS", "15", str)
         self._webcam_fps_combo_box.setCurrentIndex(self._webcam_fps_combo_box.findText(setting_value))

@@ -72,13 +72,14 @@ class Controller:
     def is_webcam_activated(self):
         return self._view.is_webcam_activated()
 
-    def set_image_view(self, image_path):
+    def set_image_view(self, image_numpy_arr):
         self._logger_controller.info("Set view processed image")
+
         # Image View
         if self._view.get_status() == 0:
-            self._view.set_image_frame(image_path)
+            self._view.set_image_frame(image_numpy_arr)
         else:
-            self._view.set_video_processing_frame(image_path)
+            self._view.set_video_processing_frame(image_numpy_arr)
 
     def add_data_graph(self, label, time):
         self._logger_controller.info("Add data to graph")

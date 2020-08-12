@@ -47,8 +47,8 @@ class facialDetectionManager:
 
             face_data = cropped_face_data.get_data()
 
-            if not face_data.any():
-                return
+            # if not face_data.any():
+            #     return
 
             tensor = cv2_to_tensor(face_data)
 
@@ -90,11 +90,6 @@ class facialDetectionManager:
                     self.faces.append(face_data)
         # stores the positions of all faces found in the image - as a collection of (x,y,w,h) data.
         boxedFaces = self.drawBoxAroundFaces(input_frame)
-
-        path = os.path.join(facialDetectionManager.OUT_DIR, 'CurrentFrame' + '.jpg')
-        cv2.imwrite(path, boxedFaces)
-
-        self.controller.set_image_view(path)
 
         return boxedFaces
 

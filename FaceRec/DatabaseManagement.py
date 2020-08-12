@@ -73,17 +73,14 @@ class Database:
             identity (str): the name of identity
             face(pixmap) : the face to be saved.
         """
-        if identity not in get_all_people_names():
+        if identity not in get_all_people_names_unsafe():
             insert_people(identity)
 
-        insert_face_as_data(identity, self.QPixmapToBytes(face))
+        insert_face_as_data(identity, self.PILToBytes(face))
 
-    def QPixmapToBytes(self, pixmap):
-        ba = QByteArray()
-        buff = QBuffer(ba)
-        buff.open(QIODevice.WriteOnly) 
-        pixmap.save(buff, "PNG")
-
-        pixmap_bytes = ba.data()
-
-        return pixmap_bytes
+    def PILToBytes(self, pil_image):
+        print(pil_image.size)
+        imgByteArr = io.BytesIO()
+        pil_image.save(imgByteArr, format='PNG')
+        imgByteArr = imgByteArr.getvalue()
+        return imgByteArr
