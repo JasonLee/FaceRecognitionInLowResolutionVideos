@@ -82,6 +82,10 @@ class Controller:
             self._view.set_video_processing_frame(image_numpy_arr)
 
     def add_data_graph(self, label, time):
+        if label.startswith("Unknown"):
+            self._logger_controller.info("Skip unknown in graph")
+            return
+            
         self._logger_controller.info("Add data to graph")
         self._view.get_graph_widget().append_to_data(label, time)
         self._view.get_graph_widget().plot()
@@ -96,7 +100,8 @@ class Controller:
         self._view.image_video_view.setCurrentIndex(1)
         self._logger_controller.info("Setting processed video to video player")
         self._view.get_video_player().set_video(path)
-        self._view.get_video_player().process_button.setDisabled(True)
+        self._view.cross_button.setDisabled(True)
+
 
     def set_video_processing_flag(self, flag):
         self._view.is_processing_video = flag

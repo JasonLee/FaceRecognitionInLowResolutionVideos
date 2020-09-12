@@ -214,8 +214,6 @@ def recog_manager(recogModel, controller):
             if controller.get_settings().value("Toggle SR", 1, int) == 1 and not memory.ganDone.is_set():
                 pass
             controller.get_logger_system().info("REC: Done")
-
-            controller.get_view().get_list_widget().enable_all_modify_button()
             return
 
         face_data_to_process = memory.recogQueue.get()

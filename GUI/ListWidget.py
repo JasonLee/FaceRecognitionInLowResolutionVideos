@@ -41,19 +41,15 @@ class ListWidget(QWidget):
         self.tab1_live.setItemWidget(list_item, new_data)
         list_item.setSizeHint(new_data.sizeHint())
         self.controller.get_logger_gui().info("Adding data to live tab")
+
+        if name.startswith("Unknown"):
+            self.controller.get_logger_gui().info("Skip unknown in total tab")
+            return
+            
         
         self._add_to_total(name, image_PIL)
         self._remove_over_limit()
 
-        self._edge_case()
-
-    # Edge case of some buttons not being enabled due to concurrency issues
-    def _edge_case(self):
-        person_result_block = self.tab1_live.item(0)
-
-        if self.tab1_live.itemWidget(person_result_block).get_button_status():
-            self.enable_all_modify_button()
-        
     
     def _remove_over_limit(self):
         self.controller.get_logger_gui().info("Removing list items if over limit")
@@ -89,12 +85,6 @@ class ListWidget(QWidget):
     def reset_total_list_dict(self):
         self._people_dict = {}
         self._people_dict_pos = 0
-
-    def enable_all_modify_button(self):
-        for i in range(self.tab1_live.count()):
-            person_result_block = self.tab1_live.item(i)
-            self.tab1_live.itemWidget(person_result_block).enable_button()
-
 
 
     class LiveResultBlock(QWidget):
@@ -149,7 +139,6 @@ class ListWidget(QWidget):
             self.button_section.setLayout(self.button_layout)
 
             self.modify_button = QPushButton(self.button_section)
-            self.modify_button.setDisabled(True)
             self.modify_button.setText("MODIFY")
             self.modify_button.clicked.connect(self._modify_label)
 

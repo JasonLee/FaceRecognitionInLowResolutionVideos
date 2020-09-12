@@ -39,9 +39,21 @@ class directoryFDM(facialDetectionManager):
             cv2_video = cv2.VideoCapture(file)
 
             frame_rate = cv2_video.get(cv2.CAP_PROP_FPS)
-            seconds_per_frame = self.controller.get_settings().value("Video Capture FPS", 0, int)
+            self.controller.get_logger_system().info("Original VIDEO FPS: " + str(frame_rate))
 
-            frame_sample = int(frame_rate) * seconds_per_frame
+            setting_fps = self.controller.get_settings().value("Video Capture FPS", "15", str)
+
+            if setting_fps == "Video FPS":
+                setting_fps = frame_rate
+            else:
+                setting_fps = int(setting_fps)
+
+            self.controller.get_logger_system().info("Requested VIDEO FPS: " + str(setting_fps))
+            sample_rate = min(setting_fps, frame_rate)
+
+            self.controller.get_logger_system().info("Final FPS: " + str(sample_rate))
+
+            frame_sample = int(frame_rate / sample_rate)
 
             success, image = cv2_video.read()
 
@@ -51,7 +63,7 @@ class directoryFDM(facialDetectionManager):
                 time_of_frame = cv2_video.get(cv2.CAP_PROP_POS_MSEC)
                 new_frame = self.locateFaces(time_of_frame, image)
                 self.controller.set_image_view(new_frame)
-
+                
                 if frame_count % frame_sample == 0:
                     self.processFrame(testForGAN, cv2_to_tensor, image)
 

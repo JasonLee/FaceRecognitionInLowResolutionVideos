@@ -38,7 +38,7 @@ class SettingsDialog(QDialog):
         face_dec_layout = QFormLayout()
         # TODO: Figure out how to detect valid sources
         face_dec_layout.addRow(QLabel("Webcam Source: "), QLabel("0"))
-        face_dec_layout.addRow(QLabel("Webcam FPS (Limited by Hardware): "), self._webcam_fps())
+        face_dec_layout.addRow(QLabel("Webcam FPS Sampling: "), self._webcam_fps())
         face_dec_layout.addRow(QLabel("Confidence: "), self._show_confidence())
         face_dec_layout.addRow(QLabel("Display Video Capture FPS: "), self._show_fps())
         face_dec_group_box.setLayout(face_dec_layout)
@@ -91,10 +91,11 @@ class SettingsDialog(QDialog):
     def _webcam_fps(self):
         # Could do a slider
         self._webcam_fps_combo_box = QComboBox()
+        self._webcam_fps_combo_box.addItem("Webcam FPS")
         self._webcam_fps_combo_box.addItem("1")
         self._webcam_fps_combo_box.addItem("15")
         self._webcam_fps_combo_box.addItem("30")
-        self._webcam_fps_combo_box.addItem("60")
+
 
         # Pull from settings
         setting_index = self.settings.value("Webcam FPS", "15", str)
@@ -119,10 +120,12 @@ class SettingsDialog(QDialog):
     def _show_fps(self):
         # Limited based in original video fps
         self._fps_combo_box = QComboBox()
+        self._fps_combo_box.addItem("Video FPS")
         self._fps_combo_box.addItem("1")
-
-        # Pull from settings
-        setting_index = self.settings.value("Video Capture FPS", "1", str)
+        self._fps_combo_box.addItem("15")
+        self._fps_combo_box.addItem("30")
+        
+        setting_index = self.settings.value("Video Capture FPS", "15", str)
         text_index = self._fps_combo_box.findText(setting_index)
         self._fps_combo_box.setCurrentIndex(text_index)
         return self._fps_combo_box
