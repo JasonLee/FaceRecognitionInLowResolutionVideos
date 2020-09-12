@@ -37,7 +37,7 @@ class SettingsTest(unittest.TestCase):
     def test_accept(self):
         self.settings_page._hardware_combo_box.setCurrentIndex(1) # GPU
         self.settings_page._confidence_combo_box.setCurrentIndex(0)
-        self.settings_page._fps_combo_box.setCurrentIndex(0)
+        self.settings_page._fps_combo_box.setCurrentIndex(1)
         self.settings_page._toggle_sr_check.setChecked(True)
         self.settings_page._min_combo_box.setCurrentIndex(0)
 
